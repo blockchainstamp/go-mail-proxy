@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	bp "github.com/blockchainstamp/go-mail-proxy"
 	"github.com/spf13/cobra"
 )
 
@@ -14,10 +15,6 @@ var (
 			logVersion()
 		},
 	}
-
-	Version   string
-	Commit    string
-	BuildTime string
 )
 
 func init() {
@@ -25,7 +22,9 @@ func init() {
 }
 
 func logVersion() {
-	fmt.Printf("bmproxy %s", Version)
-	fmt.Printf("Build Time: %s", BuildTime)
-	fmt.Printf("Commit:     %s", Commit)
+	fmt.Println("\n==================================================")
+	fmt.Printf("Version:\t %s\n", bp.Version)
+	fmt.Printf("Build:\t%s\n", bp.BuildTime)
+	fmt.Printf("Commit:\t%s\n", bp.Commit)
+	fmt.Println("==================================================")
 }

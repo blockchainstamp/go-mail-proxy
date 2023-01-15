@@ -2,10 +2,11 @@ SHELL=PATH='$(PATH)' /bin/sh
 
 PLATFORM := $(shell uname -o)
 
-COMMIT := $(shell $(GIT) rev-parse HEAD)
-VERSION ?= $(shell $(GIT) describe --tags ${COMMIT} 2> /dev/null || echo "$(COMMIT)")
+COMMIT := $(shell git rev-parse HEAD)
+VERSION ?= $(shell git describe --tags ${COMMIT} 2> /dev/null || echo "$(COMMIT)")
 BUILD_TIME := $(shell LANG=en_US date +"%F_%T_%z")
-ROOT := github.com/blockchainstamp/go-mail-proxy/cmd
+ROOT := github.com/blockchainstamp/go-mail-proxy
+SRC := $(ROOT)/cmd
 LD_FLAGS := -X $(ROOT).Version=$(VERSION) -X $(ROOT).Commit=$(COMMIT) -X $(ROOT).BuildTime=$(BUILD_TIME)
 
 NAME := bmproxy.exe
@@ -35,11 +36,11 @@ build:
 	GOOS=$(OS) GOARCH=amd64 $(GOBUILD) -o $(BINDIR)/$(NAME)
 
 mac:
-	GOOS=darwin go build  -ldflags="$(LD_FLAGS)"  -o $(BINDIR)/$(NAME).mac $(ROOT)
+	GOOS=darwin go build  -o $(BINDIR)/$(NAME).mac   -ldflags="$(LD_FLAGS)"  $(SRC)
 arm:
-	GOOS=linux GOARM=7 GOARCH=arm go build  -ldflags="$(LD_FLAGS)" -o $(BINDIR)/$(NAME).arm
+	GOOS=linux GOARM=7 GOARCH=arm go build  -o $(BINDIR)/$(NAME).arm   -ldflags="$(LD_FLAGS)"  $(SRC)
 lnx:
-	GOOS=linux go build  -ldflags="$(LD_FLAGS)" -o $(NAME).lnx
+	GOOS=linux go build -o $(BINDIR)/$(NAME).lnx   -ldflags="$(LD_FLAGS)"  $(SRC)
 
 clean:
-	rm $(BINDIR)/$(NAME)
+	rm $(BINDIR)/$(NAME).*
