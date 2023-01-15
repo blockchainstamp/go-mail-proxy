@@ -1,0 +1,5 @@
+{
+	"log_level": 5,
+	"smtp": "smtp.json",
+	"backend": "backend.json"
+}

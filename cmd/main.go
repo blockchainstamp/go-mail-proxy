@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -22,13 +21,6 @@ func init() {
 	cobra.OnInitialize()
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false,
 		"print out more debug information")
-	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		if verbose {
-			logrus.SetLevel(logrus.DebugLevel)
-		} else {
-			logrus.SetLevel(logrus.InfoLevel)
-		}
-	}
 }
 func main() {
 	if err := rootCmd.Execute(); err != nil {

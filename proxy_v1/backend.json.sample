@@ -1,0 +1,4 @@
+{
+	"ca_files": "rootCAs/gmail.com_1.pem;rootCAs/gmail.com_2.pem",
+	"server_name": "smtp.gmail.com"
+}
