@@ -34,18 +34,3 @@ func TestGenerateSMTPSample(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-func TestGenerateBackendSample(t *testing.T) {
-	var c = &BackendConf{
-		ServerName:  "smtp.gmail.com",
-		RootCAFiles: "rootCAs/gmail.com_1.pem;rootCAs/gmail.com_2.pem",
-	}
-
-	data, err := json.MarshalIndent(c, "", "\t")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = os.WriteFile("backend.json.sample", data, 0666); err != nil {
-		t.Fatal(err)
-	}
-}

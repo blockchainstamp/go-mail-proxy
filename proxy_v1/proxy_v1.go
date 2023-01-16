@@ -10,7 +10,7 @@ type ProxyService struct {
 }
 
 func (p *ProxyService) InitByConf(confPath string) error {
-	if err := _srvConf.active(confPath); err != nil {
+	if err := _srvConf.prepare(confPath); err != nil {
 		return err
 	}
 

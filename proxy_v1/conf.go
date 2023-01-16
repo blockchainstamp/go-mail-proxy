@@ -16,8 +16,11 @@ const (
 )
 
 var (
-	_srvConf = &Config{}
-	TLSErr   = errors.New("no valid tls config")
+	_srvConf = &Config{
+		SMTPConf:    &SMTPConf{},
+		BackendConf: &BackendConf{},
+	}
+	TLSErr = errors.New("no valid tls config")
 )
 
 type Config struct {
@@ -29,63 +32,48 @@ type Config struct {
 }
 
 func (c *Config) String() string {
-	s := "\n++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-	s += "Log Level:\t" + logrus.Level(c.LogLevel).String()
-	s += "SMTP Config:\t" + c.SMTPConfPath
-	s += "Backend Config:\t" + c.BackendConfPath
-	s += "\n++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+	s := "\n+++++++++++++++++++++++config+++++++++++++++++++++++++++++"
+	s += "\nLog Level:\t" + logrus.Level(c.LogLevel).String()
+	s += "\nSMTP Config:\t" + c.SMTPConfPath
+	s += "\nBackend Config:\t" + c.BackendConfPath
+	s += "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 	return s
 }
 
-func (c *Config) active(confPath string) error {
+func (c *Config) prepare(confPath string) error {
 	var (
-		data []byte = nil
-		err  error  = nil
+		err error = nil
 	)
 
-	data, err = os.ReadFile(confPath)
-	if err != nil {
+	if err = prepareConf(confPath, _srvConf); err != nil {
 		return err
 	}
-	if err = json.Unmarshal(data, _srvConf); err != nil {
-		return err
-	}
-
 	fmt.Println(_srvConf.String())
 
-	logrus.SetLevel(logrus.Level(_srvConf.LogLevel))
-
-	if err = _srvConf.activeSMTPConf(); err != nil {
+	if err = prepareConf(_srvConf.SMTPConfPath, _srvConf.SMTPConf); err != nil {
 		return err
 	}
-	if err = _srvConf.activeBackendConf(); err != nil {
-		return err
-	}
-	return err
-}
-
-func (c *Config) activeSMTPConf() error {
-	data, err := os.ReadFile(_srvConf.SMTPConfPath)
-	if err != nil {
-		return err
-	}
-	if err = json.Unmarshal(data, _srvConf.SMTPConf); err != nil {
-		return err
-	}
-
 	fmt.Println(_srvConf.SMTPConf.String())
-	return nil
-}
 
-func (c *Config) activeBackendConf() error {
-	data, err := os.ReadFile(_srvConf.BackendConfPath)
-	if err != nil {
-		return err
-	}
-	if err = json.Unmarshal(data, _srvConf.BackendConf); err != nil {
+	if err = prepareConf(_srvConf.BackendConfPath, _srvConf.BackendConf); err != nil {
 		return err
 	}
 	fmt.Println(_srvConf.BackendConf.String())
+
+	logrus.SetLevel(logrus.Level(_srvConf.LogLevel))
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
+	return err
+}
+
+func prepareConf(confPath string, conf interface{}) error {
+	data, err := os.ReadFile(confPath)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(data, conf); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -93,7 +81,7 @@ type SMTPConf struct {
 }
 
 func (sc *SMTPConf) String() string {
-	s := "\n=========service=============\n"
+	s := "\n=========service============="
 	s += "\n=============================\n"
 	return s
 }
@@ -101,12 +89,13 @@ func (sc *SMTPConf) String() string {
 type BackendConf struct {
 	RootCAFiles string `json:"ca_files"`
 	ServerName  string `json:"server_name"`
+	ServerPort  int    `json:"server_port"`
 }
 
 func (bc *BackendConf) String() string {
-	s := "\n==========backend============\n"
-	s += "Root CAs:\t" + bc.RootCAFiles
-	s += "Server Name:\t" + bc.ServerName
+	s := "\n==========backend============"
+	s += "\nRoot CAs:\t" + bc.RootCAFiles
+	s += "\nServer Name:\t" + bc.ServerName
 	s += "\n=============================\n"
 	return s
 }
