@@ -2,6 +2,7 @@ package proxy_v1
 
 import (
 	"crypto/tls"
+	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 )
@@ -16,6 +17,10 @@ var (
 type BackendSrv struct {
 	tlsCfg *tls.Config
 	cfg    *BackendConf
+}
+
+func (bs *BackendSrv) NewSession(c *smtp.Conn) (smtp.Session, error) {
+	return &Session{sender: bs, env: &BEnvelope{}}, nil
 }
 
 func NewBackendServ(conf *BackendConf) (*BackendSrv, error) {
@@ -42,5 +47,12 @@ func (bs *BackendSrv) SendMail(auth Auth, env *BEnvelope) error {
 		return err
 	}
 	defer sender.Close()
-	return sender.Send("ribencong@163.com", []string{"ribencong@126.com"}, env)
+	return sender.Send(env.From, env.Tos, env)
+}
+
+func (bs *BackendSrv) Start() error {
+	go func() {
+
+	}()
+	return nil
 }

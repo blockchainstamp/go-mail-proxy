@@ -1,1 +1,9 @@
-{}
+{
+	"address": ":1025",
+	"domain": "localhost",
+	"max_message_bytes": 1048576,
+	"read_time_out": 10,
+	"write_time_out": 10,
+	"max_recipients": 50,
+	"allow-insecure-auth": true
+}

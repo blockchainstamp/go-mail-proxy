@@ -22,15 +22,3 @@ func TestGenerateProxySample(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-func TestGenerateSMTPSample(t *testing.T) {
-	var c = &SMTPConf{}
-
-	data, err := json.MarshalIndent(c, "", "\t")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = os.WriteFile("smtp.json.sample", data, 0666); err != nil {
-		t.Fatal(err)
-	}
-}

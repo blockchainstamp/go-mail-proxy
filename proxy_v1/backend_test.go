@@ -16,7 +16,7 @@ var (
 	testBackendConf = &BackendConf{
 		ServerName:  "smtp.163.com",
 		ServerPort:  465,
-		RootCAFiles: "rootCAs/163.com.cer;rootCAs/baidu.com.cer",
+		RootCAFiles: "rootCAs/163.com.cer;rootCAs/126.com.cer",
 	}
 
 	username, password = "", ""

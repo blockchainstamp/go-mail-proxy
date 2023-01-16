@@ -78,6 +78,13 @@ func prepareConf(confPath string, conf interface{}) error {
 }
 
 type SMTPConf struct {
+	Addr              string `json:"address"`
+	Domain            string `json:"domain"`
+	MaxMessageBytes   int    `json:"max_message_bytes"`
+	ReadTimeOut       int    `json:"read_time_out"`
+	WriteTimeOut      int    `json:"write_time_out"`
+	MaxRecipients     int    `json:"max_recipients"`
+	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
 }
 
 func (sc *SMTPConf) String() string {

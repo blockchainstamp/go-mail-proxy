@@ -19,7 +19,7 @@ func (p *ProxyService) InitByConf(confPath string) error {
 		return err
 	}
 
-	smtp, err := NewSMTPSrv(_srvConf.SMTPConf)
+	smtp, err := NewSMTPSrv(_srvConf.SMTPConf, bk)
 	if err != nil {
 		return err
 	}
@@ -30,6 +30,13 @@ func (p *ProxyService) InitByConf(confPath string) error {
 }
 
 func (p *ProxyService) Start() error {
+	var err error = nil
+	if err = p.backend.Start(); err != nil {
+		return err
+	}
+	if err = p.smtp.Start(); err != nil {
+		return err
+	}
 	return nil
 }
 
