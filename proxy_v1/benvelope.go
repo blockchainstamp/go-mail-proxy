@@ -3,6 +3,7 @@ package proxy_v1
 import (
 	"bufio"
 	"bytes"
+	"github.com/emersion/go-message/textproto"
 	"io"
 )
 
@@ -12,12 +13,25 @@ type BEnvelope struct {
 	Data io.Reader
 }
 
-func (env *BEnvelope) WriteToWithStamp(w io.Writer) (n int64, err error) {
-	_, _ = w.Write([]byte(BlockStampKeyStr + "<wallet address>\n"))
+func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
+	tr := io.TeeReader(env.Data, w)
+	bufBody := bufio.NewReader(tr)
+	subMsgHdr, err := textproto.ReadHeader(bufBody)
+	if err != nil {
+		return 0, err
+	}
+
+	var msgID = subMsgHdr.Get("Message-Id")
+	_proxyLog.Debug("===========>msgID:", msgID)
+	var headers = map[string][]string{
+		BlockStampKeyStr: {"TODO::BlockChain Stamp"},
+	}
+	newH := textproto.HeaderFromMap(headers)
+	_ = textproto.WriteHeader(w, newH)
 	return io.Copy(w, env.Data)
 }
 
-func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
+func (env *BEnvelope) WriteToOld(w io.Writer) (n int64, err error) {
 
 	var depth = 0
 	reader := bufio.NewReader(env.Data)

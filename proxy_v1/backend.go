@@ -2,7 +2,7 @@ package proxy_v1
 
 import (
 	"crypto/tls"
-	"github.com/emersion/go-imap/backend/memory"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/imap"
 	"github.com/emersion/go-imap/server"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -30,7 +30,7 @@ func NewBackendServ(conf *BackendConf, srvTlsCfg *tls.Config) (*BackendSrv, erro
 		return nil, err
 	}
 
-	be := memory.New()
+	be := imap.New()
 
 	s := server.New(be)
 	s.Addr = conf.ImapAddr
