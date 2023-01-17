@@ -1,5 +1,6 @@
 {
 	"ca_files": "rootCAs/163.com.cer;rootCAs/126.com.cer",
 	"server_name": "smtp.163.com",
-	"server_port": 465
+	"server_port": 465,
+	"imap_addr": ":1143"
 }

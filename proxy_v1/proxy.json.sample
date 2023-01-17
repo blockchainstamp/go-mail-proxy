@@ -1,5 +1,8 @@
 {
 	"log_level": 5,
 	"smtp": "smtp.json",
-	"backend": "backend.json"
+	"backend": "backend.json",
+	"allow-insecure-auth": true,
+	"tls-key-path": "key.pem",
+	"tls-cert-path": "certificate.pem"
 }

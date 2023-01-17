@@ -1,7 +1,6 @@
 package proxy_v1
 
 import (
-	"bufio"
 	"encoding/json"
 	"flag"
 	"os"
@@ -15,6 +14,7 @@ var (
 		ServerName:  "smtp.163.com",
 		ServerPort:  465,
 		RootCAFiles: "rootCAs/163.com.cer;rootCAs/126.com.cer",
+		ImapAddr:    ":1143",
 	}
 
 	username, password = "", ""
@@ -36,7 +36,7 @@ func TestGenerateBackendSample(t *testing.T) {
 
 func TestNewBackendServ(t *testing.T) {
 
-	_, err := NewBackendServ(testBackendConf)
+	_, err := NewBackendServ(testBackendConf, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestBackendSrv_SendMail(t *testing.T) {
 		RootCAFiles: "../bin/rootCAs/163.com.cer;../bin/rootCAs/126.com.cer",
 	}
 
-	bs, err := NewBackendServ(c)
+	bs, err := NewBackendServ(c, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestBackendSrv_SendMail(t *testing.T) {
 		Tos: []string{
 			"ribencong@126.com",
 		},
-		Data: &BEReader{bufio.NewReader(r)},
+		Data: r,
 	}
 	if err = bs.SendMail(auth, env); err != nil {
 		t.Fatal(err)

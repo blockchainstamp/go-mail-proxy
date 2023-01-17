@@ -9,15 +9,12 @@ import (
 )
 
 var testConf = &SMTPConf{
-	Addr:              ":1025",
-	Domain:            "localhost",
-	ReadTimeOut:       10,
-	WriteTimeOut:      10,
-	MaxMessageBytes:   1 << 20,
-	MaxRecipients:     50,
-	AllowInsecureAuth: true,
-	TlsKeyPath:        "key.pem",
-	TlsCertPath:       "certificate.pem",
+	Addr:            ":1025",
+	Domain:          "localhost",
+	ReadTimeOut:     10,
+	WriteTimeOut:    10,
+	MaxMessageBytes: 1 << 20,
+	MaxRecipients:   50,
 }
 
 func TestGenerateSMTPSample(t *testing.T) {
@@ -39,7 +36,7 @@ func (p *BE) NewSession(_ *smtp.Conn) (smtp.Session, error) {
 }
 func testNewSmtpSrv(t *testing.T) *SMTPSrv {
 	var be = &BE{}
-	ss, err := NewSMTPSrv(testConf, be)
+	ss, err := NewSMTPSrv(testConf, be, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

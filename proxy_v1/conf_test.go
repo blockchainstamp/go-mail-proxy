@@ -9,9 +9,12 @@ import (
 
 func TestGenerateProxySample(t *testing.T) {
 	var c = &Config{
-		LogLevel:        uint32(logrus.DebugLevel),
-		SMTPConfPath:    "smtp.json",
-		BackendConfPath: "backend.json",
+		LogLevel:          uint32(logrus.DebugLevel),
+		SMTPConfPath:      "smtp.json",
+		BackendConfPath:   "backend.json",
+		AllowInsecureAuth: true,
+		TlsKeyPath:        "key.pem",
+		TlsCertPath:       "certificate.pem",
 	}
 
 	data, err := json.MarshalIndent(c, "", "\t")

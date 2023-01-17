@@ -1,6 +1,7 @@
 package proxy_v1
 
 import (
+	"crypto/tls"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -27,12 +28,21 @@ func (p *ProxyService) InitByConf(confPath string) error {
 		return err
 	}
 
-	bk, err := NewBackendServ(_srvConf.BackendConf)
+	var tlsCfg *tls.Config
+	if !_srvConf.AllowInsecureAuth {
+		cfg, err := _srvConf.loadServerTlsCnf()
+		if err != nil {
+			return err
+		}
+		tlsCfg = cfg
+	}
+
+	bk, err := NewBackendServ(_srvConf.BackendConf, tlsCfg)
 	if err != nil {
 		return err
 	}
 
-	ss, err := NewSMTPSrv(_srvConf.SMTPConf, p)
+	ss, err := NewSMTPSrv(_srvConf.SMTPConf, p, tlsCfg)
 	if err != nil {
 		return err
 	}

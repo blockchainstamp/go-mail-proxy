@@ -2,6 +2,8 @@ package proxy_v1
 
 import (
 	"crypto/tls"
+	"github.com/emersion/go-imap/backend/memory"
+	"github.com/emersion/go-imap/server"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 )
@@ -14,27 +16,39 @@ var (
 )
 
 type BackendSrv struct {
-	tlsCfg *tls.Config
-	cfg    *BackendConf
+	remoteSmtpTls *tls.Config
+	cfg           *BackendConf
+	imap          *server.Server
 }
 
-func NewBackendServ(conf *BackendConf) (*BackendSrv, error) {
-	tlsCfg, err := conf.loadRemoteRootCAs()
+func newImap() {
+
+}
+func NewBackendServ(conf *BackendConf, srvTlsCfg *tls.Config) (*BackendSrv, error) {
+	remoteSmtTls, err := conf.loadRemoteRootCAs()
 	if err != nil {
 		return nil, err
 	}
 
+	be := memory.New()
+
+	s := server.New(be)
+	s.Addr = conf.ImapAddr
+	s.AllowInsecureAuth = srvTlsCfg == nil
+	s.TLSConfig = srvTlsCfg
+
 	bk := &BackendSrv{
-		tlsCfg: tlsCfg,
-		cfg:    conf,
+		remoteSmtpTls: remoteSmtTls,
+		cfg:           conf,
+		imap:          s,
 	}
-	_backendLog.Info("backend service init success")
+	_backendLog.Info("backend service init success imap:", s.Addr)
 	return bk, err
 }
 
 func (bs *BackendSrv) SendMail(auth Auth, env *BEnvelope) error {
 	dialer := gomail.NewDialer(bs.cfg.ServerName, bs.cfg.ServerPort, auth.UserName, auth.PassWord)
-	dialer.TLSConfig = bs.tlsCfg
+	dialer.TLSConfig = bs.remoteSmtpTls
 
 	sender, err := dialer.Dial()
 	if err != nil {
@@ -47,7 +61,17 @@ func (bs *BackendSrv) SendMail(auth Auth, env *BEnvelope) error {
 
 func (bs *BackendSrv) Start() error {
 	go func() {
-
+		if bs.imap.AllowInsecureAuth {
+			_backendLog.Info("backend imap start success")
+			if err := bs.imap.ListenAndServe(); err != nil {
+				panic(err)
+			}
+		} else {
+			_backendLog.Info("backend imap with tls start success")
+			if err := bs.imap.ListenAndServeTLS(); err != nil {
+				panic(err)
+			}
+		}
 	}()
 	return nil
 }

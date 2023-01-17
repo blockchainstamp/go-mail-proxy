@@ -1,6 +1,7 @@
 package proxy_v1
 
 import (
+	"crypto/tls"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -18,7 +19,7 @@ type SMTPSrv struct {
 	conf    *SMTPConf
 }
 
-func NewSMTPSrv(conf *SMTPConf, be smtp.Backend) (*SMTPSrv, error) {
+func NewSMTPSrv(conf *SMTPConf, be smtp.Backend, tlsCfg *tls.Config) (*SMTPSrv, error) {
 
 	s := smtp.NewServer(be)
 
@@ -28,15 +29,8 @@ func NewSMTPSrv(conf *SMTPConf, be smtp.Backend) (*SMTPSrv, error) {
 	s.WriteTimeout = time.Duration(conf.WriteTimeOut) * time.Second
 	s.MaxMessageBytes = conf.MaxMessageBytes
 	s.MaxRecipients = conf.MaxRecipients
-	s.AllowInsecureAuth = conf.AllowInsecureAuth
-
-	if !conf.AllowInsecureAuth {
-		cfg, err := conf.loadServerTlsCnf()
-		if err != nil {
-			return nil, err
-		}
-		s.TLSConfig = cfg
-	}
+	s.AllowInsecureAuth = tlsCfg == nil
+	s.TLSConfig = tlsCfg
 
 	smtpSrv := &SMTPSrv{
 		smtpSrv: s,

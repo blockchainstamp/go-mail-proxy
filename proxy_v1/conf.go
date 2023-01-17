@@ -24,11 +24,14 @@ var (
 )
 
 type Config struct {
-	LogLevel        uint32 `json:"log_level"`
-	SMTPConfPath    string `json:"smtp"`
-	BackendConfPath string `json:"backend"`
-	*SMTPConf       `json:"-"`
-	*BackendConf    `json:"-"`
+	LogLevel          uint32 `json:"log_level"`
+	SMTPConfPath      string `json:"smtp"`
+	BackendConfPath   string `json:"backend"`
+	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
+	TlsKeyPath        string `json:"tls-key-path"`
+	TlsCertPath       string `json:"tls-cert-path"`
+	*SMTPConf         `json:"-"`
+	*BackendConf      `json:"-"`
 }
 
 func (c *Config) String() string {
@@ -76,27 +79,8 @@ func prepareConf(confPath string, conf interface{}) error {
 	}
 	return nil
 }
-
-type SMTPConf struct {
-	Addr              string `json:"address"`
-	Domain            string `json:"domain"`
-	MaxMessageBytes   int    `json:"max_message_bytes"`
-	ReadTimeOut       int    `json:"read_time_out"`
-	WriteTimeOut      int    `json:"write_time_out"`
-	MaxRecipients     int    `json:"max_recipients"`
-	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
-	TlsKeyPath        string `json:"tls-key-path"`
-	TlsCertPath       string `json:"tls-cert-path"`
-}
-
-func (sc *SMTPConf) String() string {
-	s := "\n=========service============="
-	s += "\n=============================\n"
-	return s
-}
-func (sc *SMTPConf) loadServerTlsCnf() (*tls.Config, error) {
-
-	cert, err := tls.LoadX509KeyPair(sc.TlsCertPath, sc.TlsKeyPath)
+func (c *Config) loadServerTlsCnf() (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(c.TlsCertPath, c.TlsKeyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -105,10 +89,26 @@ func (sc *SMTPConf) loadServerTlsCnf() (*tls.Config, error) {
 	return cfg, err
 }
 
+type SMTPConf struct {
+	Addr            string `json:"address"`
+	Domain          string `json:"domain"`
+	MaxMessageBytes int    `json:"max_message_bytes"`
+	ReadTimeOut     int    `json:"read_time_out"`
+	WriteTimeOut    int    `json:"write_time_out"`
+	MaxRecipients   int    `json:"max_recipients"`
+}
+
+func (sc *SMTPConf) String() string {
+	s := "\n=========service============="
+	s += "\n=============================\n"
+	return s
+}
+
 type BackendConf struct {
 	RootCAFiles string `json:"ca_files"`
 	ServerName  string `json:"server_name"`
 	ServerPort  int    `json:"server_port"`
+	ImapAddr    string `json:"imap_addr"`
 }
 
 func (bc *BackendConf) String() string {
