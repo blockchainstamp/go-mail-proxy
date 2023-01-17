@@ -12,6 +12,11 @@ type BEnvelope struct {
 	Data io.Reader
 }
 
+func (env *BEnvelope) WriteToWithStamp(w io.Writer) (n int64, err error) {
+	_, _ = w.Write([]byte(BlockStampKeyStr + "<wallet address>\n"))
+	return io.Copy(w, env.Data)
+}
+
 func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 
 	var depth = 0
@@ -34,14 +39,18 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 			_, _ = w.Write(data)
 			continue
 		}
-
 		dataLen := len(data)
 		if dataLen < 2 {
 			_proxyLog.Warnf("so short[%d] subject!!!", dataLen)
 			_, _ = w.Write(data)
 			break
 		}
-		_proxyLog.Debug("subject found:", string(data))
+
+		if bytes.Contains(data, StampSubSuffix) {
+			_proxyLog.Warn("no need to add stamp")
+			_, _ = w.Write(data)
+			break
+		}
 
 		var newData []byte
 		if data[dataLen-2] == '\r' {
@@ -53,6 +62,8 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 			newData = append(newData, StampSubSuffix...)
 			newData = append(newData, StampSubSplit)
 		}
+		_proxyLog.Debug("subject found:", string(newData))
+
 		_, _ = w.Write(newData)
 		break
 	}
