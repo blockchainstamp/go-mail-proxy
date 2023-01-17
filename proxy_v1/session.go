@@ -46,7 +46,7 @@ func (s *Session) Data(r io.Reader) error {
 	//}
 	//return nil
 
-	s.env.Data = &BEReader{r}
+	s.env.Data = r
 	return s.sender.SendMail(*s.auth, s.env)
 }
 
