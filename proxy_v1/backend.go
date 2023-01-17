@@ -2,7 +2,6 @@ package proxy_v1
 
 import (
 	"crypto/tls"
-	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 )
@@ -17,10 +16,6 @@ var (
 type BackendSrv struct {
 	tlsCfg *tls.Config
 	cfg    *BackendConf
-}
-
-func (bs *BackendSrv) NewSession(c *smtp.Conn) (smtp.Session, error) {
-	return &Session{sender: bs, env: &BEnvelope{}}, nil
 }
 
 func NewBackendServ(conf *BackendConf) (*BackendSrv, error) {

@@ -2,6 +2,7 @@ package proxy_v1
 
 import (
 	"encoding/json"
+	"github.com/emersion/go-smtp"
 	"os"
 	"testing"
 	"time"
@@ -30,18 +31,15 @@ func TestGenerateSMTPSample(t *testing.T) {
 	}
 }
 
-func testNewSmtpSrv(t *testing.T) *SMTPSrv {
-	c := &BackendConf{
-		ServerName:  "smtp.163.com",
-		ServerPort:  465,
-		RootCAFiles: "../bin/rootCAs/163.com.cer;../bin/rootCAs/126.com.cer",
-	}
+type BE struct {
+}
 
-	bs, err := NewBackendServ(c)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ss, err := NewSMTPSrv(testConf, bs)
+func (p *BE) NewSession(_ *smtp.Conn) (smtp.Session, error) {
+	return &Session{sender: nil, env: &BEnvelope{}}, nil
+}
+func testNewSmtpSrv(t *testing.T) *SMTPSrv {
+	var be = &BE{}
+	ss, err := NewSMTPSrv(testConf, be)
 	if err != nil {
 		t.Fatal(err)
 	}
