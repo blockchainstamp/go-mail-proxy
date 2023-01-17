@@ -24,7 +24,7 @@ func (bs *BackendSrv) NewSession(c *smtp.Conn) (smtp.Session, error) {
 }
 
 func NewBackendServ(conf *BackendConf) (*BackendSrv, error) {
-	tlsCfg, err := conf.loadTLSCfg()
+	tlsCfg, err := conf.loadRemoteRootCAs()
 	if err != nil {
 		return nil, err
 	}

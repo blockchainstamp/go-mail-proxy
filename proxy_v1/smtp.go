@@ -1,7 +1,6 @@
 package proxy_v1
 
 import (
-	"crypto/tls"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -17,7 +16,6 @@ var (
 type SMTPSrv struct {
 	smtpSrv *smtp.Server
 	conf    *SMTPConf
-	tlsCfg  *tls.Config
 }
 
 func NewSMTPSrv(conf *SMTPConf, be smtp.Backend) (*SMTPSrv, error) {
@@ -32,11 +30,18 @@ func NewSMTPSrv(conf *SMTPConf, be smtp.Backend) (*SMTPSrv, error) {
 	s.MaxRecipients = conf.MaxRecipients
 	s.AllowInsecureAuth = conf.AllowInsecureAuth
 
+	if !conf.AllowInsecureAuth {
+		cfg, err := conf.loadServerTlsCnf()
+		if err != nil {
+			return nil, err
+		}
+		s.TLSConfig = cfg
+	}
+
 	smtpSrv := &SMTPSrv{
 		smtpSrv: s,
 		conf:    conf,
 	}
-
 	_smptLog.Info("smtp receiving service init success at:", s.Addr)
 	return smtpSrv, nil
 }
@@ -44,10 +49,18 @@ func NewSMTPSrv(conf *SMTPConf, be smtp.Backend) (*SMTPSrv, error) {
 func (ss *SMTPSrv) Start() error {
 
 	go func() {
-		if err := ss.smtpSrv.ListenAndServe(); err != nil {
-			panic(err) //TODO:: recover the error
+		//TODO:: recover the error
+		if ss.smtpSrv.AllowInsecureAuth {
+			_smptLog.Info("smtp service running at:", ss.smtpSrv.Addr)
+			if err := ss.smtpSrv.ListenAndServe(); err != nil {
+				panic(err)
+			}
+		} else {
+			_smptLog.Info("smtp service with tls running at:", ss.smtpSrv.Addr)
+			if err := ss.smtpSrv.ListenAndServeTLS(); err != nil {
+				panic(err)
+			}
 		}
-		_smptLog.Info("smtp service running at:", ss.smtpSrv.Addr)
 	}()
 
 	return nil

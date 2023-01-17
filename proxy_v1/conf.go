@@ -85,12 +85,24 @@ type SMTPConf struct {
 	WriteTimeOut      int    `json:"write_time_out"`
 	MaxRecipients     int    `json:"max_recipients"`
 	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
+	TlsKeyPath        string `json:"tls-key-path"`
+	TlsCertPath       string `json:"tls-cert-path"`
 }
 
 func (sc *SMTPConf) String() string {
 	s := "\n=========service============="
 	s += "\n=============================\n"
 	return s
+}
+func (sc *SMTPConf) loadServerTlsCnf() (*tls.Config, error) {
+
+	cert, err := tls.LoadX509KeyPair(sc.TlsCertPath, sc.TlsKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+	return cfg, err
 }
 
 type BackendConf struct {
@@ -107,7 +119,7 @@ func (bc *BackendConf) String() string {
 	return s
 }
 
-func (bc *BackendConf) loadTLSCfg() (*tls.Config, error) {
+func (bc *BackendConf) loadRemoteRootCAs() (*tls.Config, error) {
 
 	fileNames := strings.Split(bc.RootCAFiles, CAFileSep)
 	if len(fileNames) == 0 {

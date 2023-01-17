@@ -15,6 +15,8 @@ var testConf = &SMTPConf{
 	MaxMessageBytes:   1 << 20,
 	MaxRecipients:     50,
 	AllowInsecureAuth: true,
+	TlsKeyPath:        "key.pem",
+	TlsCertPath:       "certificate.pem",
 }
 
 func TestGenerateSMTPSample(t *testing.T) {

@@ -5,5 +5,7 @@
 	"read_time_out": 10,
 	"write_time_out": 10,
 	"max_recipients": 50,
-	"allow-insecure-auth": true
+	"allow-insecure-auth": true,
+	"tls-key-path": "key.pem",
+	"tls-cert-path": "certificate.pem"
 }
