@@ -2,6 +2,7 @@ package proxy_v1
 
 import (
 	"crypto/tls"
+	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/imap"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/smtp"
 	"github.com/blockchainstamp/go-mail-proxy/utils"
@@ -38,10 +39,14 @@ func (p *ProxyService) InitByConf(confPath string) error {
 	if err := utils.ReadJsonFile(_srvConf.SMTPConfPath, smtpCfg); err != nil {
 		return err
 	}
+	fmt.Println(smtpCfg.String())
+
 	imapCfg := &imap.Conf{}
 	if err := utils.ReadJsonFile(_srvConf.IMAPConfPath, imapCfg); err != nil {
 		return err
 	}
+	fmt.Println(imapCfg.String())
+
 	is, err := imap.NewIMAPSrv(imapCfg, localTlsCfg)
 	if err != nil {
 		return err

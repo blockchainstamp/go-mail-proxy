@@ -26,8 +26,8 @@ func (c *Config) String() string {
 	s += "\nSMTP Config:\t" + c.SMTPConfPath
 	s += "\nIMAP Config:\t" + c.IMAPConfPath
 	s += fmt.Sprintf("\nSecure Auth:\t%t", c.AllowInsecureAuth)
-	s += "\nTls Key Path:\t" + c.IMAPConfPath
-	s += "\nTls Cert Path:\t" + c.IMAPConfPath
+	s += "\nTls Key Path:\t" + c.TlsKeyPath
+	s += "\nTls Cert Path:\t" + c.TlsCertPath
 	s += "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 	return s
 }

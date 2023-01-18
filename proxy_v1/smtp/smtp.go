@@ -70,7 +70,7 @@ func (ss *Service) Start() error {
 }
 
 func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
-	return &Session{sender: ss, env: &common.BEnvelope{}}, nil
+	return &Session{delegate: ss, env: &common.BEnvelope{}}, nil
 }
 
 func (ss *Service) SendMail(auth common.Auth, env *common.BEnvelope) error {
@@ -84,4 +84,17 @@ func (ss *Service) SendMail(auth common.Auth, env *common.BEnvelope) error {
 	}
 	defer sender.Close()
 	return sender.Send(env.From, env.Tos, env)
+}
+
+func (ss *Service) AUTH(auth *common.Auth) error {
+	dialer := gomail.NewDialer(ss.conf.RemoteSrvName, ss.conf.RemoteSrvPort, auth.UserName, auth.PassWord)
+	dialer.TLSConfig = ss.remoteTlsCfg
+
+	sender, err := dialer.Dial()
+	if err != nil {
+		_smtpLog.Warnf("dial to %s failed:%s", ss.conf.RemoteSrvName, err)
+		return err
+	}
+	sender.Close()
+	return nil
 }

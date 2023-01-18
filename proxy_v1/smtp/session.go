@@ -8,12 +8,13 @@ import (
 
 type Delegate interface {
 	SendMail(auth common.Auth, env *common.BEnvelope) error
+	AUTH(auth *common.Auth) error
 }
 
 type Session struct {
-	auth   *common.Auth
-	sender Delegate
-	env    *common.BEnvelope
+	auth     *common.Auth
+	delegate Delegate
+	env      *common.BEnvelope
 }
 
 func (s *Session) AuthPlain(username, password string) error {
@@ -22,7 +23,7 @@ func (s *Session) AuthPlain(username, password string) error {
 		PassWord: password,
 	}
 	_smtpLog.Info("session auth for:", username)
-	return nil
+	return s.delegate.AUTH(s.auth)
 }
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
@@ -40,7 +41,7 @@ func (s *Session) Rcpt(to string) error {
 func (s *Session) Data(r io.Reader) error {
 
 	s.env.Data = r
-	return s.sender.SendMail(*s.auth, s.env)
+	return s.delegate.SendMail(*s.auth, s.env)
 }
 
 func (s *Session) Reset() {

@@ -26,7 +26,7 @@ type Conf struct {
 func (sc *Conf) String() string {
 	s := "\n=========service============="
 	s += "\nServer Addr:\t" + sc.SrvAddr
-	s += "\nServer Name:\t" + sc.SrvDomain
+	s += "\nServer Domain:\t" + sc.SrvDomain
 	s += "\nRoot CAs:\t" + sc.RemoteSrvCAs
 	s += "\nRemote Server:\t" + sc.RemoteSrvName
 	s += fmt.Sprintf("\nRemote Port:\t%d", sc.RemoteSrvPort)
@@ -52,7 +52,7 @@ func (sc *Conf) loadRemoteRootCAs() (*tls.Config, error) {
 		rootCAs.AppendCertsFromPEM(data)
 	}
 	tlsConf := &tls.Config{
-		ServerName: sc.SrvDomain,
+		ServerName: sc.RemoteSrvName,
 		RootCAs:    rootCAs,
 	}
 	return tlsConf, nil
