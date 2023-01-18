@@ -2,7 +2,9 @@ package proxy_v1
 
 import (
 	"crypto/tls"
-	"github.com/emersion/go-smtp"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/imap"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/smtp"
+	"github.com/blockchainstamp/go-mail-proxy/utils"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -10,17 +12,13 @@ import (
 var (
 	_proxyLog = logrus.WithFields(logrus.Fields{
 		"mode":    "proxy main process",
-		"package": "proxy_v1",
+		"package": "proxy",
 	})
 )
 
 type ProxyService struct {
-	backend *BackendSrv
-	smtp    *SMTPSrv
-}
-
-func (p *ProxyService) NewSession(c *smtp.Conn) (smtp.Session, error) {
-	return &Session{sender: p.backend, env: &BEnvelope{}}, nil
+	imapSrv *imap.Service
+	smtpSrv *smtp.Service
 }
 
 func (p *ProxyService) InitByConf(confPath string) error {
@@ -28,37 +26,44 @@ func (p *ProxyService) InitByConf(confPath string) error {
 		return err
 	}
 
-	var tlsCfg *tls.Config
+	var localTlsCfg *tls.Config
 	if !_srvConf.AllowInsecureAuth {
 		cfg, err := _srvConf.loadServerTlsCnf()
 		if err != nil {
 			return err
 		}
-		tlsCfg = cfg
+		localTlsCfg = cfg
 	}
-
-	bk, err := NewBackendServ(_srvConf.BackendConf, tlsCfg)
+	smtpCfg := &smtp.Conf{}
+	if err := utils.ReadJsonFile(_srvConf.SMTPConfPath, smtpCfg); err != nil {
+		return err
+	}
+	imapCfg := &imap.Conf{}
+	if err := utils.ReadJsonFile(_srvConf.IMAPConfPath, imapCfg); err != nil {
+		return err
+	}
+	is, err := imap.NewIMAPSrv(imapCfg, localTlsCfg)
 	if err != nil {
 		return err
 	}
 
-	ss, err := NewSMTPSrv(_srvConf.SMTPConf, p, tlsCfg)
+	ss, err := smtp.NewSMTPSrv(smtpCfg, localTlsCfg)
 	if err != nil {
 		return err
 	}
 
-	p.smtp = ss
-	p.backend = bk
+	p.smtpSrv = ss
+	p.imapSrv = is
 	_proxyLog.Info("proxy process init success")
 	return nil
 }
 
 func (p *ProxyService) Start() error {
 	var err error = nil
-	if err = p.backend.Start(); err != nil {
+	if err = p.imapSrv.Start(); err != nil {
 		return err
 	}
-	if err = p.smtp.Start(); err != nil {
+	if err = p.smtpSrv.Start(); err != nil {
 		return err
 	}
 	_proxyLog.Info("proxy process start success")

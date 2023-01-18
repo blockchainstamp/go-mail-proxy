@@ -1,4 +1,4 @@
-package proxy_v1
+package common
 
 type Auth struct {
 	UserName string

@@ -1,6 +1,9 @@
-package proxy_v1
+package common
+
+import "errors"
 
 const (
+	CAFileSep        = ";"
 	MaxFindDepth     = 10
 	StampSubKey      = "Subject: "
 	StampSubSplit    = '\n'
@@ -8,5 +11,6 @@ const (
 )
 
 var (
+	TLSErr         = errors.New("no valid tls config")
 	StampSubSuffix = []byte("======blockchainStamp=====")
 )

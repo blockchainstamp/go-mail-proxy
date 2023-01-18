@@ -1,10 +1,18 @@
-package proxy_v1
+package common
 
 import (
 	"bufio"
 	"bytes"
 	"github.com/emersion/go-message/textproto"
+	"github.com/sirupsen/logrus"
 	"io"
+)
+
+var (
+	_comLog = logrus.WithFields(logrus.Fields{
+		"mode":    "smtp service",
+		"package": "common",
+	})
 )
 
 type BEnvelope struct {
@@ -22,7 +30,7 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	var msgID = subMsgHdr.Get("Message-Id")
-	_proxyLog.Debug("===========>msgID:", msgID)
+	_comLog.Debug("===========>msgID:", msgID)
 	var headers = map[string][]string{
 		BlockStampKeyStr: {"TODO::BlockChain Stamp"},
 	}
@@ -38,30 +46,30 @@ func (env *BEnvelope) WriteToOld(w io.Writer) (n int64, err error) {
 	for {
 		depth++
 		if depth > MaxFindDepth {
-			_proxyLog.Warn("finding subject exceed max depth:")
+			_comLog.Warn("finding subject exceed max depth:")
 			break
 		}
 		data, err := reader.ReadSlice(StampSubSplit)
 		if err != nil {
-			_proxyLog.Debug("finding subject err:", err)
+			_comLog.Debug("finding subject err:", err)
 			_, _ = w.Write(data)
 			break
 		}
 
 		if !bytes.HasPrefix(data, []byte(StampSubKey)) {
-			_proxyLog.Debug("not subject: ", string(data))
+			_comLog.Debug("not subject: ", string(data))
 			_, _ = w.Write(data)
 			continue
 		}
 		dataLen := len(data)
 		if dataLen < 2 {
-			_proxyLog.Warnf("so short[%d] subject!!!", dataLen)
+			_comLog.Warnf("so short[%d] subject!!!", dataLen)
 			_, _ = w.Write(data)
 			break
 		}
 
 		if bytes.Contains(data, StampSubSuffix) {
-			_proxyLog.Warn("no need to add stamp")
+			_comLog.Warn("no need to add stamp")
 			_, _ = w.Write(data)
 			break
 		}
@@ -76,7 +84,7 @@ func (env *BEnvelope) WriteToOld(w io.Writer) (n int64, err error) {
 			newData = append(newData, StampSubSuffix...)
 			newData = append(newData, StampSubSplit)
 		}
-		_proxyLog.Debug("subject found:", string(newData))
+		_comLog.Debug("subject found:", string(newData))
 
 		_, _ = w.Write(newData)
 		break
