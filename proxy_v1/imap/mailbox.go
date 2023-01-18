@@ -1,7 +1,7 @@
 package imap
 
 import (
-	"io/ioutil"
+	"io"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -164,7 +164,7 @@ func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Lit
 		date = time.Now()
 	}
 
-	b, err := ioutil.ReadAll(body)
+	b, err := io.ReadAll(body)
 	if err != nil {
 		return err
 	}

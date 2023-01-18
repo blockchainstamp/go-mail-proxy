@@ -27,7 +27,6 @@ func (c *Conf) String() string {
 	s += fmt.Sprintf("\nRemote Port:\t%d", c.RemoteSrvPort)
 	s += "\n=============================\n"
 	return s
-	return s
 }
 func (c *Conf) loadRemoteRootCAs() (*tls.Config, error) {
 

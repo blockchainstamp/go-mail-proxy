@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"flag"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"log"
 	"os"
@@ -44,7 +45,7 @@ func TestNewImapServ(t *testing.T) {
 	}
 }
 
-func TestStartTLS(t *testing.T) {
+func TestClient(t *testing.T) {
 	log.Println("Connecting to server...")
 	testRootCAs := x509.NewCertPool()
 	testRootCAs.AppendCertsFromPEM(neteaseCert)
@@ -69,6 +70,56 @@ func TestStartTLS(t *testing.T) {
 		log.Fatal(err)
 	}
 	log.Println("Logged in")
+
+	mailboxes := make(chan *imap.MailboxInfo, 10)
+	done := make(chan error, 1)
+	go func() {
+		done <- c.List("", "*", mailboxes)
+	}()
+
+	log.Println("Mailboxes:")
+	for m := range mailboxes {
+		log.Println("* " + m.Name)
+	}
+
+	if err := <-done; err != nil {
+		log.Fatal(err)
+	}
+
+	// Select INBOX
+	mbox, err := c.Select("INBOX", false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Flags for INBOX:", mbox.Flags)
+
+	// Get the last 4 messages
+	from := uint32(1)
+	to := mbox.Messages
+	if mbox.Messages > 3 {
+		// We're using unsigned integers here, only substract if the result is > 0
+		from = mbox.Messages - 3
+	}
+	seqset := new(imap.SeqSet)
+	seqset.AddRange(from, to)
+	items := []imap.FetchItem{imap.FetchEnvelope}
+
+	messages := make(chan *imap.Message, 10)
+	done = make(chan error, 1)
+	go func() {
+		done <- c.Fetch(seqset, items, messages)
+	}()
+
+	log.Println("Last 4 messages:")
+	for msg := range messages {
+		log.Println("* " + msg.Envelope.Subject)
+	}
+
+	if err := <-done; err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Done!")
 }
 
 var neteaseCert = []byte(`

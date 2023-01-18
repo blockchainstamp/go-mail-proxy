@@ -39,12 +39,8 @@ func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.U
 		_imapLog.Warnf("user[%s] login failed:%s", username, err)
 		return nil, err
 	}
-	u.mailboxes = map[string]*Mailbox{
-		"INBOX": {
-			name: "INBOX",
-			user: u,
-		},
-	}
+
+	_ = u.CreateMailbox("INBOX")
 	is.users[username] = u
 	_imapLog.Infof("user[%s] login success", username)
 	return u, nil
