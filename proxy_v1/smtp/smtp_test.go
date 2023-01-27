@@ -14,10 +14,18 @@ var (
 	testConf = &Conf{
 		SrvAddr:   ":1025",
 		SrvDomain: "localhost",
-
-		RemoteSrvName: "smtp.163.com",
-		RemoteSrvPort: 465,
-		RemoteSrvCAs:  "rootCAs/163.com.cer;rootCAs/126.com.cer",
+		RemoteConf: map[string]*RemoteConf{
+			"ribencong@163.com": &RemoteConf{
+				RemoteSrvName: "smtp.163.com",
+				RemoteSrvPort: 465,
+				RemoteSrvCAs:  "rootCAs/163.com.cer",
+			},
+			"ribencong@126.com": &RemoteConf{
+				RemoteSrvName: "smtp.126.com",
+				RemoteSrvPort: 465,
+				RemoteSrvCAs:  "rootCAs/126.com.cer",
+			},
+		},
 
 		ReadTimeOut:     10,
 		WriteTimeOut:    10,
@@ -65,9 +73,18 @@ func TestNewSMTPSrv_2(t *testing.T) {
 
 func TestBackendSrv_SendMail(t *testing.T) {
 	c := &Conf{
-		RemoteSrvName: "smtp.163.com",
-		RemoteSrvPort: 465,
-		RemoteSrvCAs:  "../bin/rootCAs/163.com.cer;../bin/rootCAs/126.com.cer",
+		RemoteConf: map[string]*RemoteConf{
+			"ribencong@163.com": &RemoteConf{
+				RemoteSrvName: "smtp.163.com",
+				RemoteSrvPort: 465,
+				RemoteSrvCAs:  "../bin/rootCAs/163.com.cer",
+			},
+			"ribencong@126.com": &RemoteConf{
+				RemoteSrvName: "smtp.126.com",
+				RemoteSrvPort: 465,
+				RemoteSrvCAs:  "../bin/rootCAs/126.com.cer",
+			},
+		},
 	}
 
 	bs, err := NewSMTPSrv(c, nil)

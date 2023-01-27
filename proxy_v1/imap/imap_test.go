@@ -15,11 +15,22 @@ import (
 
 var (
 	testImapConf = &Conf{
-		RemoteSrvName: "imap.163.com",
-		RemoteSrvPort: 993,
-		RemoteSrvCAs:  "rootCAs/163.com.cer;rootCAs/126.com.cer",
-		SrvAddr:       ":1143",
-		SrvDomain:     "localhost",
+		SrvAddr:   ":1143",
+		SrvDomain: "localhost",
+		RemoteConf: map[string]*RemoteConf{
+			"ribencong@163.com": &RemoteConf{
+
+				RemoteSrvName: "imap.163.com",
+				RemoteSrvPort: 993,
+				RemoteSrvCAs:  "rootCAs/163.com.cer",
+			},
+			"ribencong@126.com": &RemoteConf{
+
+				RemoteSrvName: "imap.126.com",
+				RemoteSrvPort: 993,
+				RemoteSrvCAs:  "rootCAs/126.com.cer",
+			},
+		},
 	}
 
 	username, password = "", ""

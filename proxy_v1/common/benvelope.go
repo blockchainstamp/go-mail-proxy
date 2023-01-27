@@ -30,7 +30,7 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	var msgID = subMsgHdr.Get("Message-Id")
-	_comLog.Debug("===========>msgID:", msgID)
+	_comLog.Debug("msgID:", msgID)
 	var headers = map[string][]string{
 		BlockStampKeyStr: {"TODO::BlockChain Stamp"},
 	}

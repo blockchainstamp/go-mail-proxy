@@ -1,7 +1,16 @@
 {
 	"srv_addr": ":1143",
 	"srv_domain": "localhost",
-	"ca_files": "rootCAs/163.com.cer;rootCAs/126.com.cer",
-	"remote_srv_name": "imap.163.com",
-	"remote_srv_port": 993
+	"remote_conf": {
+		"ribencong@126.com": {
+			"ca_files": "rootCAs/126.com.cer",
+			"remote_srv_name": "imap.126.com",
+			"remote_srv_port": 993
+		},
+		"ribencong@163.com": {
+			"ca_files": "rootCAs/163.com.cer",
+			"remote_srv_name": "imap.163.com",
+			"remote_srv_port": 993
+		}
+	}
 }

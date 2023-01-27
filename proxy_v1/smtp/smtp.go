@@ -17,20 +17,17 @@ var (
 )
 
 type Service struct {
-	smtpSrv      *smtp.Server
-	conf         *Conf
-	remoteTlsCfg *tls.Config
+	smtpSrv *smtp.Server
+	conf    *Conf
 }
 
 func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
-	remoteSmtTls, err := conf.loadRemoteRootCAs()
-	if err != nil {
+	if err := conf.loadRemoteRootCAs(); err != nil {
 		return nil, err
 	}
 
 	smtpSrv := &Service{
-		conf:         conf,
-		remoteTlsCfg: remoteSmtTls,
+		conf: conf,
 	}
 	s := smtp.NewServer(smtpSrv)
 
@@ -74,12 +71,16 @@ func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
 }
 
 func (ss *Service) SendMail(auth common.Auth, env *common.BEnvelope) error {
-	dialer := gomail.NewDialer(ss.conf.RemoteSrvName, ss.conf.RemoteSrvPort, auth.UserName, auth.PassWord)
-	dialer.TLSConfig = ss.remoteTlsCfg
+	conf := ss.conf.getRemoteConf(auth.UserName)
+	if conf == nil {
+		return common.ConfErr
+	}
+	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
+	dialer.TLSConfig = conf.tlsConfig
 
 	sender, err := dialer.Dial()
 	if err != nil {
-		_smtpLog.Warnf("dial to %s failed:%s", ss.conf.RemoteSrvName, err)
+		_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
 		return err
 	}
 	defer sender.Close()
@@ -87,12 +88,16 @@ func (ss *Service) SendMail(auth common.Auth, env *common.BEnvelope) error {
 }
 
 func (ss *Service) AUTH(auth *common.Auth) error {
-	dialer := gomail.NewDialer(ss.conf.RemoteSrvName, ss.conf.RemoteSrvPort, auth.UserName, auth.PassWord)
-	dialer.TLSConfig = ss.remoteTlsCfg
+	conf := ss.conf.getRemoteConf(auth.UserName)
+	if conf == nil {
+		return common.ConfErr
+	}
+	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
+	dialer.TLSConfig = conf.tlsConfig
 
 	sender, err := dialer.Dial()
 	if err != nil {
-		_smtpLog.Warnf("dial to %s failed:%s", ss.conf.RemoteSrvName, err)
+		_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
 		return err
 	}
 	sender.Close()

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/emersion/go-imap"
-
 	"github.com/emersion/go-imap/backend"
 )
 

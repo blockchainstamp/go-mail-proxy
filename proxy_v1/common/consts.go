@@ -7,13 +7,15 @@ const (
 	MaxFindDepth     = 10
 	StampSubKey      = "Subject: "
 	StampSubSplit    = '\n'
-	BlockStampKeyStr = "BlockChain Stamp:"
+	BlockStampKeyStr = "BlockChain-Stamp"
 	IMAPSrvName      = "BlockChainStampProtocol"
 	IMAPCliVendor    = "StampClient"
 	StampMailBox     = "区块链邮票"
+	INBOXName        = "INBOX"
 )
 
 var (
+	ConfErr        = errors.New("no config for the user")
 	TLSErr         = errors.New("no valid tls config")
 	StampSubSuffix = []byte("======blockchainStamp=====")
 )

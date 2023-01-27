@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"fmt"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -8,11 +10,9 @@ import (
 
 type Mailbox struct {
 	Subscribed bool
-	Messages   []*Message
-
-	name string
-	user *User
-	info *imap.MailboxInfo
+	name       string
+	user       *User
+	info       *imap.MailboxInfo
 }
 
 func (mbox *Mailbox) ensureSelected() error {
@@ -30,25 +30,6 @@ func (mbox *Mailbox) Name() string {
 
 func (mbox *Mailbox) Info() (*imap.MailboxInfo, error) {
 	return mbox.info, nil
-}
-
-func (mbox *Mailbox) unseenSeqNum() uint32 {
-	for i, msg := range mbox.Messages {
-		seqNum := uint32(i + 1)
-
-		seen := false
-		for _, flag := range msg.Flags {
-			if flag == imap.SeenFlag {
-				seen = true
-				break
-			}
-		}
-
-		if !seen {
-			return seqNum
-		}
-	}
-	return 0
 }
 
 func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error) {
@@ -92,8 +73,14 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			done <- mbox.user.cli.Fetch(seqSet, items, messages)
 		}
 	}()
-
+	var needTrans = mbox.name == common.INBOXName
 	for msg := range messages {
+		env := msg.Envelope
+		if needTrans && env != nil && len(env.Stamp) > 0 {
+			//mbox.MoveMessages(uid)
+			fmt.Println(seqSet, msg.SeqNum)
+			//continue
+		}
 		ch <- msg
 	}
 

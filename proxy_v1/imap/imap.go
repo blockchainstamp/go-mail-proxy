@@ -2,7 +2,6 @@ package imap
 
 import (
 	"crypto/tls"
-	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/emersion/go-imap"
 	id "github.com/emersion/go-imap-id"
@@ -24,17 +23,19 @@ var (
 )
 
 type Service struct {
-	remoteTlsCfg  *tls.Config
-	remoteSrvAddr string
-	srv           *server.Server
+	conf *Conf
+	srv  *server.Server
 }
 
 func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
-
+	conf := is.conf.getRemoteConf(username)
+	if conf == nil {
+		return nil, common.ConfErr
+	}
 	u := &User{username: username, password: password}
-	c, err := client.DialTLS(is.remoteSrvAddr, is.remoteTlsCfg)
+	c, err := client.DialTLS(conf.remoteSrvAddr, conf.tlsConfig)
 	if err != nil {
-		_imapLog.Warn("dial failed", is.remoteSrvAddr, err)
+		_imapLog.Warn("dial failed", conf.remoteSrvAddr, err)
 		return nil, err
 	}
 
@@ -64,13 +65,11 @@ func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.U
 
 func NewIMAPSrv(cfg *Conf, lclSrvTls *tls.Config) (*Service, error) {
 
-	remoteSmtTls, err := cfg.loadRemoteRootCAs()
-	if err != nil {
+	if err := cfg.loadRemoteRootCAs(); err != nil {
 		return nil, err
 	}
 	is := &Service{
-		remoteTlsCfg:  remoteSmtTls,
-		remoteSrvAddr: fmt.Sprintf("%s:%d", cfg.RemoteSrvName, cfg.RemoteSrvPort),
+		conf: cfg,
 	}
 	s := server.New(is)
 	s.Addr = cfg.SrvAddr
