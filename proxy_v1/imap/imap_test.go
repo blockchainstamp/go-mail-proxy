@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/emersion/go-imap"
+	id "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/client"
 	"log"
 	"os"
@@ -62,11 +63,23 @@ func TestClient(t *testing.T) {
 
 	// Don't forget to logout
 	defer c.Logout()
-
+	cli := WrapEXClient(c)
 	// Start a TLS session
-
+	isID, err := cli.IDCli.SupportID()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Support ID:", isID)
+	if isID {
+		cliID := id.ID{"name": "blockchainStamp", "version": "1.0.1", "vendor": "StampClient"}
+		srvID, err := cli.IDCli.ID(cliID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("Server ID:", srvID)
+	}
 	// Now we can login
-	if err := c.Login(username, password); err != nil {
+	if err := cli.Login(username, password); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("Logged in")
@@ -74,7 +87,7 @@ func TestClient(t *testing.T) {
 	mailboxes := make(chan *imap.MailboxInfo, 10)
 	done := make(chan error, 1)
 	go func() {
-		done <- c.List("", "*", mailboxes)
+		done <- cli.List("", "*", mailboxes)
 	}()
 
 	log.Println("Mailboxes:")
@@ -87,7 +100,7 @@ func TestClient(t *testing.T) {
 	}
 
 	// Select INBOX
-	mbox, err := c.Select("INBOX", false)
+	mbox, err := cli.Select("INBOX", false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -107,7 +120,7 @@ func TestClient(t *testing.T) {
 	messages := make(chan *imap.Message, 10)
 	done = make(chan error, 1)
 	go func() {
-		done <- c.Fetch(seqset, items, messages)
+		done <- cli.Fetch(seqset, items, messages)
 	}()
 
 	log.Println("Last 4 messages:")
