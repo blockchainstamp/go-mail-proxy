@@ -113,6 +113,7 @@ func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]
 }
 
 func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
+	defer _imapLog.Debugf("create message with flags%v", flags)
 	return mbox.user.cli.Append(mbox.name, flags, date, body)
 }
 
@@ -122,20 +123,20 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 	}
 
 	flagsInterface := imap.FormatStringList(flags)
+	defer _imapLog.Debugf("update message[%s] flags%v uid=%t op=%s", seqSet.String(), flags, uid, op)
 
 	if uid {
 		return mbox.user.cli.UidStore(seqSet, imap.StoreItem(op), flagsInterface, nil)
 	} else {
 		return mbox.user.cli.Store(seqSet, imap.StoreItem(op), flagsInterface, nil)
 	}
-
 }
 
 func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string) error {
 	if err := mbox.ensureSelected(); err != nil {
 		return err
 	}
-
+	defer _imapLog.Debugf("copy message[%s] to [%s]", seqSet.String(), destName)
 	if uid {
 		return mbox.user.cli.UidCopy(seqSet, destName)
 	} else {
@@ -147,6 +148,17 @@ func (mbox *Mailbox) Expunge() error {
 	if err := mbox.ensureSelected(); err != nil {
 		return err
 	}
+	defer _imapLog.Debugf("expunge from mailbox[%s]", mbox.name)
 
 	return mbox.user.cli.Expunge(nil)
+}
+
+func (mbox *Mailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, dest string) error {
+	defer _imapLog.Debugf("move message from mailbox[%s] to [%s]", mbox.name, dest)
+
+	if uid {
+		return mbox.user.cli.UidMove(seqSet, dest)
+	} else {
+		return mbox.user.cli.Move(seqSet, dest)
+	}
 }

@@ -2,6 +2,7 @@ package imap
 
 import (
 	"errors"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/emersion/go-imap"
 
 	"github.com/emersion/go-imap/backend"
@@ -37,20 +38,44 @@ func (u *User) listMailboxes(subscribed bool, name string) ([]backend.Mailbox, e
 }
 
 func (u *User) ListMailboxes(subscribed bool) (mailboxes []backend.Mailbox, err error) {
-	return u.listMailboxes(subscribed, "*")
+	_imapLog.Info("listing all mailbox sub:", subscribed)
+
+	mailboxes, err = u.listMailboxes(subscribed, "*")
+	if err != nil {
+		return nil, err
+	}
+
+	var needCreate = true
+	for _, m := range mailboxes {
+		if m.Name() == common.StampMailBox {
+			needCreate = false
+		}
+	}
+
+	if needCreate {
+		_imapLog.Info("need to create stamp mailbox")
+		if err := u.CreateMailbox(common.StampMailBox); err != nil {
+			_imapLog.Warn("failed to create the stamp mailbox:", err)
+		}
+		return u.listMailboxes(subscribed, "*")
+	}
+	return mailboxes, nil
 }
 
 func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
 	mailboxes, err := u.listMailboxes(false, name)
 	if err != nil {
+		_imapLog.Warnf("mailbox[%s] can't be listed:%s", name, err)
 		return nil, err
 	}
 	if len(mailboxes) == 0 {
+		_imapLog.Warn("No such mailbox")
 		return nil, errors.New("No such mailbox")
 	}
 
 	m := mailboxes[0]
 	if err := m.(*Mailbox).ensureSelected(); err != nil {
+		_imapLog.Warnf("mailbox[%s] can't be selected:%s", name, err)
 		return nil, err
 	}
 
@@ -58,17 +83,30 @@ func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
 }
 
 func (u *User) CreateMailbox(name string) error {
-	return u.cli.Create(name)
+	err := u.cli.Create(name)
+	if err != nil {
+		_imapLog.Warnf("create mailbox[%s] failed:%s", name, err)
+	}
+	return err
 }
 
 func (u *User) DeleteMailbox(name string) error {
-	return u.cli.Delete(name)
+	err := u.cli.Delete(name)
+	if err != nil {
+		_imapLog.Warnf("delete mailbox[%s] failed:%s", name, err)
+	}
+	return err
 }
 
 func (u *User) RenameMailbox(existingName, newName string) error {
-	return u.cli.Rename(existingName, newName)
+	err := u.cli.Rename(existingName, newName)
+	if err != nil {
+		_imapLog.Warnf("rename mailbox from[%s] to[%s] failed:%s", existingName, newName, err)
+	}
+	return err
 }
 
 func (u *User) Logout() error {
+	_imapLog.Info("user log out", u.username)
 	return u.cli.Logout()
 }

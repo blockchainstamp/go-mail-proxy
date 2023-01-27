@@ -10,6 +10,7 @@ const (
 	BlockStampKeyStr = "BlockChain Stamp:"
 	IMAPSrvName      = "BlockChainStampProtocol"
 	IMAPCliVendor    = "StampClient"
+	StampMailBox     = "区块链邮票"
 )
 
 var (
