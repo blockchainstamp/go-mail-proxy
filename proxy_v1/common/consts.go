@@ -8,6 +8,8 @@ const (
 	StampSubKey      = "Subject: "
 	StampSubSplit    = '\n'
 	BlockStampKeyStr = "BlockChain Stamp:"
+	IMAPSrvName      = "BlockChainStampProtocol"
+	IMAPCliVendor    = "StampClient"
 )
 
 var (

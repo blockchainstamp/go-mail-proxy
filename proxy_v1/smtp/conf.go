@@ -24,7 +24,7 @@ type Conf struct {
 }
 
 func (sc *Conf) String() string {
-	s := "\n=========service============="
+	s := "\n=========service[smtp]============="
 	s += "\nServer Addr:\t" + sc.SrvAddr
 	s += "\nServer Domain:\t" + sc.SrvDomain
 	s += "\nRoot CAs:\t" + sc.RemoteSrvCAs

@@ -1,15 +1,10 @@
 package imap
 
 import (
-	"io"
 	"time"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/backend"
-	"github.com/emersion/go-imap/backend/backendutil"
 )
-
-var Delimiter = "/"
 
 type Mailbox struct {
 	Subscribed bool
@@ -17,6 +12,16 @@ type Mailbox struct {
 
 	name string
 	user *User
+	info *imap.MailboxInfo
+}
+
+func (mbox *Mailbox) ensureSelected() error {
+	if mbox.user.cli.Mailbox() != nil && mbox.user.cli.Mailbox().Name == mbox.name {
+		return nil
+	}
+
+	_, err := mbox.user.cli.Select(mbox.name, false)
+	return err
 }
 
 func (mbox *Mailbox) Name() string {
@@ -24,39 +29,7 @@ func (mbox *Mailbox) Name() string {
 }
 
 func (mbox *Mailbox) Info() (*imap.MailboxInfo, error) {
-	info := &imap.MailboxInfo{
-		Delimiter: Delimiter,
-		Name:      mbox.name,
-	}
-	return info, nil
-}
-
-func (mbox *Mailbox) uidNext() uint32 {
-	var uid uint32
-	for _, msg := range mbox.Messages {
-		if msg.Uid > uid {
-			uid = msg.Uid
-		}
-	}
-	uid++
-	return uid
-}
-
-func (mbox *Mailbox) flags() []string {
-	flagsMap := make(map[string]bool)
-	for _, msg := range mbox.Messages {
-		for _, f := range msg.Flags {
-			if !flagsMap[f] {
-				flagsMap[f] = true
-			}
-		}
-	}
-
-	var flags []string
-	for f := range flagsMap {
-		flags = append(flags, f)
-	}
-	return flags
+	return mbox.info, nil
 }
 
 func (mbox *Mailbox) unseenSeqNum() uint32 {
@@ -79,165 +52,101 @@ func (mbox *Mailbox) unseenSeqNum() uint32 {
 }
 
 func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error) {
-	status := imap.NewMailboxStatus(mbox.name, items)
-	status.Flags = mbox.flags()
-	status.PermanentFlags = []string{"\\*"}
-	status.UnseenSeqNum = mbox.unseenSeqNum()
-
-	for _, name := range items {
-		switch name {
-		case imap.StatusMessages:
-			status.Messages = uint32(len(mbox.Messages))
-		case imap.StatusUidNext:
-			status.UidNext = mbox.uidNext()
-		case imap.StatusUidValidity:
-			status.UidValidity = 1
-		case imap.StatusRecent:
-			status.Recent = 0 // TODO
-		case imap.StatusUnseen:
-			status.Unseen = 0 // TODO
-		}
+	if mbox.user.cli.Mailbox() != nil && mbox.user.cli.Mailbox().Name == mbox.name {
+		mbox := *mbox.user.cli.Mailbox()
+		return &mbox, nil
 	}
 
-	return status, nil
+	return mbox.user.cli.Status(mbox.name, items)
 }
 
 func (mbox *Mailbox) SetSubscribed(subscribed bool) error {
-	mbox.Subscribed = subscribed
-	return nil
+	if subscribed {
+		return mbox.user.cli.Subscribe(mbox.name)
+	} else {
+		return mbox.user.cli.Unsubscribe(mbox.name)
+	}
 }
 
 func (mbox *Mailbox) Check() error {
-	return nil
+	if err := mbox.ensureSelected(); err != nil {
+		return err
+	}
+
+	return mbox.user.cli.Check()
 }
 
 func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
 	defer close(ch)
 
-	for i, msg := range mbox.Messages {
-		seqNum := uint32(i + 1)
-
-		var id uint32
-		if uid {
-			id = msg.Uid
-		} else {
-			id = seqNum
-		}
-		if !seqSet.Contains(id) {
-			continue
-		}
-
-		m, err := msg.Fetch(seqNum, items)
-		if err != nil {
-			continue
-		}
-
-		ch <- m
-	}
-
-	return nil
-}
-
-func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
-	var ids []uint32
-	for i, msg := range mbox.Messages {
-		seqNum := uint32(i + 1)
-
-		ok, err := msg.Match(seqNum, criteria)
-		if err != nil || !ok {
-			continue
-		}
-
-		var id uint32
-		if uid {
-			id = msg.Uid
-		} else {
-			id = seqNum
-		}
-		ids = append(ids, id)
-	}
-	return ids, nil
-}
-
-func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
-	if date.IsZero() {
-		date = time.Now()
-	}
-
-	b, err := io.ReadAll(body)
-	if err != nil {
+	if err := mbox.ensureSelected(); err != nil {
 		return err
 	}
 
-	mbox.Messages = append(mbox.Messages, &Message{
-		Uid:   mbox.uidNext(),
-		Date:  date,
-		Size:  uint32(len(b)),
-		Flags: flags,
-		Body:  b,
-	})
-	return nil
+	messages := make(chan *imap.Message)
+	done := make(chan error, 1)
+	go func() {
+		if uid {
+			done <- mbox.user.cli.UidFetch(seqSet, items, messages)
+		} else {
+			done <- mbox.user.cli.Fetch(seqSet, items, messages)
+		}
+	}()
+
+	for msg := range messages {
+		ch <- msg
+	}
+
+	return <-done
 }
 
-func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqset *imap.SeqSet, op imap.FlagsOp, flags []string) error {
-	for i, msg := range mbox.Messages {
-		var id uint32
-		if uid {
-			id = msg.Uid
-		} else {
-			id = uint32(i + 1)
-		}
-		if !seqset.Contains(id) {
-			continue
-		}
-
-		msg.Flags = backendutil.UpdateFlags(msg.Flags, op, flags)
+func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
+	if err := mbox.ensureSelected(); err != nil {
+		return nil, err
 	}
 
-	return nil
+	if uid {
+		return mbox.user.cli.UidSearch(criteria)
+	} else {
+		return mbox.user.cli.Search(criteria)
+	}
 }
 
-func (mbox *Mailbox) CopyMessages(uid bool, seqset *imap.SeqSet, destName string) error {
-	dest, ok := mbox.user.mailboxes[destName]
-	if !ok {
-		return backend.ErrNoSuchMailbox
+func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
+	return mbox.user.cli.Append(mbox.name, flags, date, body)
+}
+
+func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.FlagsOp, flags []string) error {
+	if err := mbox.ensureSelected(); err != nil {
+		return err
 	}
 
-	for i, msg := range mbox.Messages {
-		var id uint32
-		if uid {
-			id = msg.Uid
-		} else {
-			id = uint32(i + 1)
-		}
-		if !seqset.Contains(id) {
-			continue
-		}
+	flagsInterface := imap.FormatStringList(flags)
 
-		msgCopy := *msg
-		msgCopy.Uid = dest.uidNext()
-		dest.Messages = append(dest.Messages, &msgCopy)
+	if uid {
+		return mbox.user.cli.UidStore(seqSet, imap.StoreItem(op), flagsInterface, nil)
+	} else {
+		return mbox.user.cli.Store(seqSet, imap.StoreItem(op), flagsInterface, nil)
 	}
 
-	return nil
+}
+
+func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string) error {
+	if err := mbox.ensureSelected(); err != nil {
+		return err
+	}
+
+	if uid {
+		return mbox.user.cli.UidCopy(seqSet, destName)
+	} else {
+		return mbox.user.cli.Copy(seqSet, destName)
+	}
 }
 
 func (mbox *Mailbox) Expunge() error {
-	for i := len(mbox.Messages) - 1; i >= 0; i-- {
-		msg := mbox.Messages[i]
-
-		deleted := false
-		for _, flag := range msg.Flags {
-			if flag == imap.DeletedFlag {
-				deleted = true
-				break
-			}
-		}
-
-		if deleted {
-			mbox.Messages = append(mbox.Messages[:i], mbox.Messages[i+1:]...)
-		}
+	if err := mbox.ensureSelected(); err != nil {
+		return err
 	}
 
-	return nil
+	return mbox.user.cli.Expunge(nil)
 }

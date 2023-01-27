@@ -3,11 +3,17 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/emersion/go-imap"
+	id "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/backend"
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-imap/server"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	Version = "1.0.1"
 )
 
 var (
@@ -18,7 +24,6 @@ var (
 )
 
 type Service struct {
-	users         map[string]*User
 	remoteTlsCfg  *tls.Config
 	remoteSrvAddr string
 	srv           *server.Server
@@ -33,15 +38,26 @@ func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.U
 		return nil, err
 	}
 
-	defer c.Logout()
+	cli := WrapEXClient(c)
+	isID, err := cli.IDCli.SupportID()
+	if err != nil {
+		return nil, err
+	}
+	if isID {
+		cliID := id.ID{"name": common.IMAPSrvName, "version": Version, "vendor": common.IMAPCliVendor}
+		srvID, err := cli.IDCli.ID(cliID)
+		if err != nil {
+			return nil, err
+		}
+		tx := srvID["TransID"]
+		_imapLog.Debug("imap support id, tx is:", tx)
+	}
 
-	if err := c.Login(username, password); err != nil {
+	if err := cli.Login(username, password); err != nil {
 		_imapLog.Warnf("user[%s] login failed:%s", username, err)
 		return nil, err
 	}
-
-	_ = u.CreateMailbox("INBOX")
-	is.users[username] = u
+	u.cli = cli
 	_imapLog.Infof("user[%s] login success", username)
 	return u, nil
 }
@@ -54,7 +70,6 @@ func NewIMAPSrv(cfg *Conf, lclSrvTls *tls.Config) (*Service, error) {
 	}
 	is := &Service{
 		remoteTlsCfg:  remoteSmtTls,
-		users:         make(map[string]*User),
 		remoteSrvAddr: fmt.Sprintf("%s:%d", cfg.RemoteSrvName, cfg.RemoteSrvPort),
 	}
 	s := server.New(is)

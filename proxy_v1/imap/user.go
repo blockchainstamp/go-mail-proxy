@@ -2,6 +2,7 @@ package imap
 
 import (
 	"errors"
+	"github.com/emersion/go-imap"
 
 	"github.com/emersion/go-imap/backend"
 )
@@ -9,74 +10,65 @@ import (
 type User struct {
 	username  string
 	password  string
+	cli       *Client
 	mailboxes map[string]*Mailbox
 }
 
 func (u *User) Username() string {
 	return u.username
 }
+func (u *User) listMailboxes(subscribed bool, name string) ([]backend.Mailbox, error) {
+	mailboxes := make(chan *imap.MailboxInfo)
+	done := make(chan error, 1)
+	go func() {
+		if subscribed {
+			done <- u.cli.Lsub("", name, mailboxes)
+		} else {
+			done <- u.cli.List("", name, mailboxes)
+		}
+	}()
+
+	var list []backend.Mailbox
+	for m := range mailboxes {
+		list = append(list, &Mailbox{user: u, name: m.Name, info: m})
+	}
+
+	return list, <-done
+}
 
 func (u *User) ListMailboxes(subscribed bool) (mailboxes []backend.Mailbox, err error) {
-	for _, mailbox := range u.mailboxes {
-		if subscribed && !mailbox.Subscribed {
-			continue
-		}
-
-		mailboxes = append(mailboxes, mailbox)
-	}
-	return
+	return u.listMailboxes(subscribed, "*")
 }
 
 func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
-	mailbox, ok := u.mailboxes[name]
-	if !ok {
-		err = errors.New("No such mailbox")
+	mailboxes, err := u.listMailboxes(false, name)
+	if err != nil {
+		return nil, err
 	}
-	return
+	if len(mailboxes) == 0 {
+		return nil, errors.New("No such mailbox")
+	}
+
+	m := mailboxes[0]
+	if err := m.(*Mailbox).ensureSelected(); err != nil {
+		return nil, err
+	}
+
+	return m, err
 }
 
 func (u *User) CreateMailbox(name string) error {
-	if _, ok := u.mailboxes[name]; ok {
-		return errors.New("Mailbox already exists")
-	}
-
-	u.mailboxes[name] = &Mailbox{name: name, user: u}
-	return nil
+	return u.cli.Create(name)
 }
 
 func (u *User) DeleteMailbox(name string) error {
-	if name == "INBOX" {
-		return errors.New("Cannot delete INBOX")
-	}
-	if _, ok := u.mailboxes[name]; !ok {
-		return errors.New("No such mailbox")
-	}
-
-	delete(u.mailboxes, name)
-	return nil
+	return u.cli.Delete(name)
 }
 
 func (u *User) RenameMailbox(existingName, newName string) error {
-	mbox, ok := u.mailboxes[existingName]
-	if !ok {
-		return errors.New("No such mailbox")
-	}
-
-	u.mailboxes[newName] = &Mailbox{
-		name:     newName,
-		Messages: mbox.Messages,
-		user:     u,
-	}
-
-	mbox.Messages = nil
-
-	if existingName != "INBOX" {
-		delete(u.mailboxes, existingName)
-	}
-
-	return nil
+	return u.cli.Rename(existingName, newName)
 }
 
 func (u *User) Logout() error {
-	return nil
+	return u.cli.Logout()
 }
