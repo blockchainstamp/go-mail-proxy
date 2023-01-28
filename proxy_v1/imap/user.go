@@ -49,6 +49,7 @@ func (u *User) ListMailboxes(subscribed bool) (mailboxes []backend.Mailbox, err 
 		if m.Name() == common.StampMailBox {
 			needCreate = false
 		}
+		_imapLog.Debug("mailbox:", m.Name())
 	}
 
 	if needCreate {
@@ -69,7 +70,7 @@ func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
 	}
 	if len(mailboxes) == 0 {
 		_imapLog.Warn("No such mailbox")
-		return nil, errors.New("No such mailbox")
+		return nil, errors.New("no such mailbox")
 	}
 
 	m := mailboxes[0]

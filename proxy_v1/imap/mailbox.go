@@ -2,7 +2,6 @@ package imap
 
 import (
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -73,13 +72,14 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			done <- mbox.user.cli.Fetch(seqSet, items, messages)
 		}
 	}()
-	var needTrans = mbox.name == common.INBOXName
+	//var needTrans = mbox.name == common.INBOXName
 	for msg := range messages {
-		env := msg.Envelope
-		if needTrans && env != nil && len(env.Stamp) > 0 {
-			//mbox.MoveMessages(uid)
-			fmt.Println(seqSet, msg.SeqNum)
-			//continue
+		if msg.BodyStructure != nil || len(msg.Body) > 0 {
+			fmt.Println()
+			fmt.Println()
+			fmt.Println(msg.Body)
+			fmt.Println()
+			fmt.Println()
 		}
 		ch <- msg
 	}
