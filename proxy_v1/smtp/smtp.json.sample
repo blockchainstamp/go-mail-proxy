@@ -13,7 +13,7 @@
 			"remote_srv_port": 465
 		}
 	},
-	"max_message_bytes": 1048576,
+	"max_message_bytes": 536870912,
 	"read_time_out": 10,
 	"write_time_out": 10,
 	"max_recipients": 50

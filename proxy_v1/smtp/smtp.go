@@ -67,10 +67,10 @@ func (ss *Service) Start() error {
 }
 
 func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
-	return &Session{delegate: ss, env: &common.BEnvelope{}}, nil
+	return &Session{delegate: ss, env: &BEnvelope{}}, nil
 }
 
-func (ss *Service) SendMail(auth common.Auth, env *common.BEnvelope) error {
+func (ss *Service) SendMail(auth common.Auth, env *BEnvelope) error {
 	conf := ss.conf.getRemoteConf(auth.UserName)
 	if conf == nil {
 		return common.ConfErr
@@ -84,7 +84,11 @@ func (ss *Service) SendMail(auth common.Auth, env *common.BEnvelope) error {
 		return err
 	}
 	defer sender.Close()
-	return sender.Send(env.From, env.Tos, env)
+	err = sender.Send(env.From, env.Tos, env)
+	if err != nil {
+		_smtpLog.Warnf("SendMail failed :%s", err)
+	}
+	return err
 }
 
 func (ss *Service) AUTH(auth *common.Auth) error {

@@ -29,7 +29,7 @@ var (
 
 		ReadTimeOut:     10,
 		WriteTimeOut:    10,
-		MaxMessageBytes: 1 << 20,
+		MaxMessageBytes: 1 << 29,
 		MaxRecipients:   50,
 	}
 	username, password = "", ""
@@ -93,7 +93,7 @@ func TestBackendSrv_SendMail(t *testing.T) {
 	}
 	auth := common.Auth{UserName: username, PassWord: password}
 	r := strings.NewReader("Subject: Bmail:" + time.Now().String() + "\n\nThis is a test email with blockchain stamp!!!")
-	env := &common.BEnvelope{
+	env := &BEnvelope{
 		From: username,
 		Tos: []string{
 			"ribencong@126.com",

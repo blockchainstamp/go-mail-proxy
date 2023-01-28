@@ -7,14 +7,14 @@ import (
 )
 
 type Delegate interface {
-	SendMail(auth common.Auth, env *common.BEnvelope) error
+	SendMail(auth common.Auth, env *BEnvelope) error
 	AUTH(auth *common.Auth) error
 }
 
 type Session struct {
 	auth     *common.Auth
 	delegate Delegate
-	env      *common.BEnvelope
+	env      *BEnvelope
 }
 
 func (s *Session) AuthPlain(username, password string) error {
@@ -39,7 +39,6 @@ func (s *Session) Rcpt(to string) error {
 }
 
 func (s *Session) Data(r io.Reader) error {
-
 	s.env.Data = r
 	return s.delegate.SendMail(*s.auth, s.env)
 }

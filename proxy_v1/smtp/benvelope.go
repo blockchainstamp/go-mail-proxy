@@ -1,18 +1,11 @@
-package common
+package smtp
 
 import (
 	"bufio"
 	"bytes"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/emersion/go-message/textproto"
-	"github.com/sirupsen/logrus"
 	"io"
-)
-
-var (
-	_comLog = logrus.WithFields(logrus.Fields{
-		"mode":    "smtp service",
-		"package": "common",
-	})
 )
 
 type BEnvelope struct {
@@ -30,9 +23,9 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	var msgID = subMsgHdr.Get("Message-Id")
-	_comLog.Debug("msgID:", msgID)
+	_smtpLog.Debug("msgID:", msgID)
 	var headers = map[string][]string{
-		BlockStampKeyStr: {"TODO::BlockChain Stamp"},
+		common.BlockStampKeyStr: {"TODO::BlockChain Stamp"},
 	}
 	newH := textproto.HeaderFromMap(headers)
 	_ = textproto.WriteHeader(w, newH)
@@ -45,31 +38,31 @@ func (env *BEnvelope) WriteToOld(w io.Writer) (n int64, err error) {
 	reader := bufio.NewReader(env.Data)
 	for {
 		depth++
-		if depth > MaxFindDepth {
-			_comLog.Warn("finding subject exceed max depth:")
+		if depth > common.MaxFindDepth {
+			_smtpLog.Warn("finding subject exceed max depth:")
 			break
 		}
-		data, err := reader.ReadSlice(StampSubSplit)
+		data, err := reader.ReadSlice(common.StampSubSplit)
 		if err != nil {
-			_comLog.Debug("finding subject err:", err)
+			_smtpLog.Debug("finding subject err:", err)
 			_, _ = w.Write(data)
 			break
 		}
 
-		if !bytes.HasPrefix(data, []byte(StampSubKey)) {
-			_comLog.Debug("not subject: ", string(data))
+		if !bytes.HasPrefix(data, []byte(common.StampSubKey)) {
+			_smtpLog.Debug("not subject: ", string(data))
 			_, _ = w.Write(data)
 			continue
 		}
 		dataLen := len(data)
 		if dataLen < 2 {
-			_comLog.Warnf("so short[%d] subject!!!", dataLen)
+			_smtpLog.Warnf("so short[%d] subject!!!", dataLen)
 			_, _ = w.Write(data)
 			break
 		}
 
-		if bytes.Contains(data, StampSubSuffix) {
-			_comLog.Warn("no need to add stamp")
+		if bytes.Contains(data, common.StampSubSuffix) {
+			_smtpLog.Warn("no need to add stamp")
 			_, _ = w.Write(data)
 			break
 		}
@@ -77,14 +70,14 @@ func (env *BEnvelope) WriteToOld(w io.Writer) (n int64, err error) {
 		var newData []byte
 		if data[dataLen-2] == '\r' {
 			newData = append(newData, data[:dataLen-2]...)
-			newData = append(newData, StampSubSuffix...)
-			newData = append(newData, '\r', StampSubSplit)
+			newData = append(newData, common.StampSubSuffix...)
+			newData = append(newData, '\r', common.StampSubSplit)
 		} else {
 			newData = append(newData, data[:dataLen-1]...)
-			newData = append(newData, StampSubSuffix...)
-			newData = append(newData, StampSubSplit)
+			newData = append(newData, common.StampSubSuffix...)
+			newData = append(newData, common.StampSubSplit)
 		}
-		_comLog.Debug("subject found:", string(newData))
+		_smtpLog.Debug("subject found:", string(newData))
 
 		_, _ = w.Write(newData)
 		break
