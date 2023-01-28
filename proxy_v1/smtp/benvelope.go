@@ -3,6 +3,7 @@ package smtp
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"io"
 	"net/textproto"
@@ -16,21 +17,21 @@ type BEnvelope struct {
 
 func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 
-	txtW := textproto.NewWriter(bufio.NewWriter(w))
+	var buf bytes.Buffer
+	tr := io.TeeReader(env.Data, &buf)
 
-	err = txtW.PrintfLine(common.BlockStampKey + ": TODO::BlockChain Stamp")
-	if err != nil {
-		_smtpLog.Warn("Write header:", err)
-		return 0, err
-	}
-	tr := io.TeeReader(env.Data, w)
-
-	txtR := textproto.NewReader(bufio.NewReader(tr))
-	header, err := txtR.ReadLine()
+	txtR := textproto.NewReader(bufio.NewReaderSize(tr, common.SMTPHeaderSize))
+	header, err := txtR.ReadMIMEHeader()
 	if err != nil {
 		return 0, err
 	}
 	_smtpLog.Debug("header:", header)
+	msgID := header.Get(common.MsgIDKey)
+	addH := fmt.Sprintf(common.BlockStampKey+": TODO::BlockChain Stamp[%s]\r\n", msgID)
+	var newH []byte
+	newH = append(newH, []byte(addH)...)
+	newH = append(newH, buf.Bytes()...)
+	w.Write(newH)
 	return io.Copy(w, env.Data)
 	//data, err := io.ReadAll(tr)
 	//return int64(len(data)), err
