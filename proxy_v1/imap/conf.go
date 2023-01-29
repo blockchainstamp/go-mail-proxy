@@ -10,15 +10,19 @@ import (
 )
 
 type RemoteConf struct {
-	RemoteSrvCAs  string `json:"ca_files"`
-	RemoteSrvName string `json:"remote_srv_name"`
-	RemoteSrvPort int    `json:"remote_srv_port"`
-	tlsConfig     *tls.Config
-	remoteSrvAddr string
+	RemoteSrvCAs   string `json:"ca_files"`
+	RemoteCADomain string `json:"ca_domain"`
+	AllowNotSecure bool   `json:"allow_not_secure"`
+	RemoteSrvName  string `json:"remote_srv_name"`
+	RemoteSrvPort  int    `json:"remote_srv_port"`
+	tlsConfig      *tls.Config
+	remoteSrvAddr  string
 }
 
 func (rc *RemoteConf) String() string {
 	s := "\nRoot CAs:\t" + rc.RemoteSrvCAs
+	s += "\nCA Domain:\t" + rc.RemoteCADomain
+	s += fmt.Sprintf("\nAllow not security:\t%t", rc.AllowNotSecure)
 	s += "\nRemote Server:\t" + rc.RemoteSrvName
 	s += fmt.Sprintf("\nRemote Port:\t%d", rc.RemoteSrvPort)
 	return s
@@ -45,6 +49,11 @@ func (c *Conf) String() string {
 
 func (c *Conf) loadRemoteRootCAs() error {
 	for _, conf := range c.RemoteConf {
+		conf.remoteSrvAddr = fmt.Sprintf("%s:%d", conf.RemoteSrvName, conf.RemoteSrvPort)
+
+		if conf.AllowNotSecure {
+			continue
+		}
 		fileNames := strings.Split(conf.RemoteSrvCAs, common.CAFileSep)
 		if len(fileNames) == 0 {
 			return common.TLSErr
@@ -58,11 +67,10 @@ func (c *Conf) loadRemoteRootCAs() error {
 			rootCAs.AppendCertsFromPEM(data)
 		}
 		tlsConf := &tls.Config{
-			ServerName: conf.RemoteSrvName,
+			ServerName: conf.RemoteCADomain,
 			RootCAs:    rootCAs,
 		}
 		conf.tlsConfig = tlsConf
-		conf.remoteSrvAddr = fmt.Sprintf("%s:%d", conf.RemoteSrvName, conf.RemoteSrvPort)
 	}
 	return nil
 }

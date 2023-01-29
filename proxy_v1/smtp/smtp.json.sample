@@ -2,13 +2,21 @@
 	"srv_addr": ":1025",
 	"srv_domain": "localhost",
 	"remote_conf": {
+		"99927800@qq.com": {
+			"ca_files": "rootCAs/qq.com.cer",
+			"ca_domain": "qq.com",
+			"remote_srv_name": "smtp.qq.com",
+			"remote_srv_port": 465
+		},
 		"ribencong@126.com": {
 			"ca_files": "rootCAs/126.com.cer",
+			"ca_domain": "126.com",
 			"remote_srv_name": "smtp.126.com",
 			"remote_srv_port": 465
 		},
 		"ribencong@163.com": {
 			"ca_files": "rootCAs/163.com.cer",
+			"ca_domain": "163.com",
 			"remote_srv_name": "smtp.163.com",
 			"remote_srv_port": 465
 		}

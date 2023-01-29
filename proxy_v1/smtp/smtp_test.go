@@ -16,14 +16,22 @@ var (
 		SrvDomain: "localhost",
 		RemoteConf: map[string]*RemoteConf{
 			"ribencong@163.com": &RemoteConf{
-				RemoteSrvName: "smtp.163.com",
-				RemoteSrvPort: 465,
-				RemoteSrvCAs:  "rootCAs/163.com.cer",
+				RemoteCADomain: "smtp.163.com",
+				RemoteSrvName:  "smtp.163.com",
+				RemoteSrvPort:  465,
+				RemoteSrvCAs:   "rootCAs/163.com.cer",
 			},
 			"ribencong@126.com": &RemoteConf{
-				RemoteSrvName: "smtp.126.com",
-				RemoteSrvPort: 465,
-				RemoteSrvCAs:  "rootCAs/126.com.cer",
+				RemoteCADomain: "smtp.126.com",
+				RemoteSrvName:  "smtp.126.com",
+				RemoteSrvPort:  465,
+				RemoteSrvCAs:   "rootCAs/126.com.cer",
+			},
+			"99927800@qq.com": &RemoteConf{
+				RemoteCADomain: "mail.qq.com",
+				RemoteSrvName:  "smtp.qq.com",
+				RemoteSrvPort:  465,
+				RemoteSrvCAs:   "rootCAs/qq.com.cer",
 			},
 		},
 

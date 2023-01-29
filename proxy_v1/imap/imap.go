@@ -30,12 +30,14 @@ type Service struct {
 func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
 	conf := is.conf.getRemoteConf(username)
 	if conf == nil {
+		_imapLog.Warn("no remote tls config for user:", username)
 		return nil, common.ConfErr
 	}
 	u := &User{username: username, password: password}
+
 	c, err := client.DialTLS(conf.remoteSrvAddr, conf.tlsConfig)
 	if err != nil {
-		_imapLog.Warn("dial failed", conf.remoteSrvAddr, err)
+		_imapLog.Warn("dial failed: ", conf.remoteSrvAddr, err)
 		return nil, err
 	}
 

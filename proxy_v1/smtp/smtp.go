@@ -104,6 +104,6 @@ func (ss *Service) AUTH(auth *common.Auth) error {
 		_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
 		return err
 	}
-	sender.Close()
-	return nil
+	_smtpLog.Info("auth success:", auth.UserName)
+	return sender.Close()
 }
