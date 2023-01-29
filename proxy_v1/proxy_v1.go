@@ -3,6 +3,7 @@ package proxy_v1
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/imap"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/smtp"
 	"github.com/blockchainstamp/go-mail-proxy/utils"
@@ -56,7 +57,7 @@ func (p *ProxyService) InitByConf(confPath string) error {
 	if err != nil {
 		return err
 	}
-
+	go utils.StartCmdService(_srvConf.CmdSrvAddr)
 	p.smtpSrv = ss
 	p.imapSrv = is
 	_proxyLog.Info("proxy process init success")
@@ -83,7 +84,12 @@ func (p *ProxyService) ShutDown() error {
 	return nil
 }
 
+func (p *ProxyService) Command(cmd common.Command) any {
+	return nil
+}
+
 func NewProxy() *ProxyService {
 	ps := &ProxyService{}
+	common.RegCmdProc(common.CMDProxy, ps.Command)
 	return ps
 }

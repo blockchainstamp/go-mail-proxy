@@ -1,0 +1,7 @@
+SHELL=PATH='$(PATH)' /bin/sh
+
+.PHONY: all
+all:
+	protoc --go_out=. --go_opt=paths=source_relative \
+		   --go-grpc_out=. --go-grpc_opt=paths=source_relative,require_unimplemented_servers=false \
+ 		   cmdService.proto

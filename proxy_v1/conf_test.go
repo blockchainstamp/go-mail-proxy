@@ -2,6 +2,7 @@ package proxy_v1
 
 import (
 	"encoding/json"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
@@ -12,6 +13,7 @@ func TestGenerateProxySample(t *testing.T) {
 		LogLevel:          uint32(logrus.DebugLevel),
 		SMTPConfPath:      "smtp.json",
 		IMAPConfPath:      "imap.json",
+		CmdSrvAddr:        common.DefaultCmdSrvAddr,
 		AllowInsecureAuth: true,
 		TlsKeyPath:        "key.pem",
 		TlsCertPath:       "certificate.pem",

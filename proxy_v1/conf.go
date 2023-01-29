@@ -15,6 +15,7 @@ type Config struct {
 	LogLevel          uint32 `json:"log_level"`
 	SMTPConfPath      string `json:"smtp"`
 	IMAPConfPath      string `json:"imap"`
+	CmdSrvAddr        string `json:"cmd_srv_addr"`
 	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
 	TlsKeyPath        string `json:"tls-key-path"`
 	TlsCertPath       string `json:"tls-cert-path"`
@@ -25,6 +26,7 @@ func (c *Config) String() string {
 	s += "\nLog Level:\t" + logrus.Level(c.LogLevel).String()
 	s += "\nSMTP Config:\t" + c.SMTPConfPath
 	s += "\nIMAP Config:\t" + c.IMAPConfPath
+	s += "\nCMD Srv Addr:\t" + c.CmdSrvAddr
 	s += fmt.Sprintf("\nSecure Auth:\t%t", c.AllowInsecureAuth)
 	s += "\nTls Key Path:\t" + c.TlsKeyPath
 	s += "\nTls Cert Path:\t" + c.TlsCertPath

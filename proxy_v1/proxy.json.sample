@@ -2,6 +2,7 @@
 	"log_level": 5,
 	"smtp": "smtp.json",
 	"imap": "imap.json",
+	"cmd_srv_addr": "127.0.0.1:1100",
 	"allow-insecure-auth": true,
 	"tls-key-path": "key.pem",
 	"tls-cert-path": "certificate.pem"

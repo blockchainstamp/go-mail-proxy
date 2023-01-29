@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package utils;
+option go_package = "github.com/blockchainstamp/go-mail-proxy/utils;utils";
+
+service CmdService {
+  rpc SetLogLevel (LogLevel) returns (CommonResponse) {}
+  rpc PrintLogLevel (EmptyRequest) returns (CommonResponse) {}
+  rpc ReloadConf(Config) returns (CommonResponse) {}
+}
+message EmptyRequest {
+}
+
+message LogLevel{
+  string Level = 1;
+}
+
+message CommonResponse {
+  string msg = 1;
+}
+message Config {
+  bool show = 1;
+  string mode = 2;
+}

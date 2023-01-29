@@ -26,6 +26,7 @@ endif
 .SECONDEXPANSION:
 
 .PHONY: all
+.PHONY: pbs
 .PHONY: test
 
 BINDIR=./bin
@@ -34,6 +35,9 @@ all: pbs build
 
 build:
 	GOOS=$(OS) GOARCH=amd64 $(GOBUILD) -o $(BINDIR)/$(NAME)
+
+pbs:
+	cd utils/ && $(MAKE)
 
 mac:
 	GOOS=darwin go build  -o $(BINDIR)/$(NAME).mac   -ldflags="$(LD_FLAGS)"  $(SRC)
