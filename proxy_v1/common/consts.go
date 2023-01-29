@@ -11,7 +11,7 @@ const (
 	MsgIDKey       = "Message-ID"
 	IMAPSrvName    = "BlockChainStampProtocol"
 	IMAPCliVendor  = "StampClient"
-	StampMailBox   = "区块链邮票"
+	StampMailBox   = "StampMailBox" //"区块链邮票"
 	INBOXName      = "INBOX"
 	SMTPHeaderSize = 1 << 11
 )
