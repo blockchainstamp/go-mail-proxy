@@ -60,27 +60,26 @@ func (mbox *Mailbox) Check() error {
 	return mbox.user.cli.Check()
 }
 
-func (mbox *Mailbox) isStampMail(msg *imap.Message) bool {
-	_imapLog.Debug("msg body size:", len(msg.Body))
-	var buf bytes.Buffer
-	for name, literal := range msg.Body {
-		if name.BodyPartName.Specifier != imap.HeaderSpecifier {
-			continue
-		}
-		_imapLog.Debug("msg header found")
-		_, err := io.Copy(&buf, literal)
-		if err != nil {
-			_imapLog.Warn("copy header failed:", err)
-			return false
-		}
-		break
-	}
+type bTeeReader struct {
+	buf bytes.Buffer
+	io.Reader
+	io.Writer
+}
 
-	if buf.Len() == 0 {
-		_imapLog.Info("no header data found")
-		return false
-	}
-	txtR := textproto.NewReader(bufio.NewReader(&buf))
+func (btr *bTeeReader) Write(p []byte) (n int, err error) {
+	return btr.buf.Write(p)
+}
+func (btr *bTeeReader) Read(p []byte) (n int, err error) {
+	return btr.buf.Read(p)
+}
+func (btr *bTeeReader) Len() int {
+	return btr.buf.Len()
+}
+
+func (btr *bTeeReader) hasStamp() bool {
+	txtR := textproto.NewReader(bufio.NewReader(&btr.buf))
+	defer btr.buf.Reset()
+
 	headers, err := txtR.ReadMIMEHeader()
 	if err != nil {
 		_imapLog.Warn("msg header parse err:", err)
@@ -91,8 +90,27 @@ func (mbox *Mailbox) isStampMail(msg *imap.Message) bool {
 		_imapLog.Info("no stamp found")
 		return false
 	}
-	_imapLog.Debugf("stamp{%s} found uid[%d] seq[%d]:", stamp, msg.Uid, msg.SeqNum)
+	_imapLog.Debug("stamp found:", stamp)
 	return true
+}
+
+func (mbox *Mailbox) isStampMail(msg *imap.Message) bool {
+	_imapLog.Debug("msg body size:", len(msg.Body))
+	for name, literal := range msg.Body {
+		if name.BodyPartName.Specifier != imap.HeaderSpecifier {
+			continue
+		}
+		var tr bTeeReader
+		_imapLog.Debug("msg header found")
+		n, err := io.CopyN(&tr, literal, int64(literal.Len()))
+		if err != nil || n < 4 {
+			_imapLog.Warn("copy header failed:", err)
+			return false
+		}
+		msg.Body[name] = &tr
+		return tr.hasStamp()
+	}
+	return false
 }
 
 func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
@@ -113,12 +131,13 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 	}()
 	stampSeq := new(imap.SeqSet)
 	for msg := range messages {
-
 		if len(msg.Body) > 0 && mbox.name == common.INBOXName {
 			if mbox.isStampMail(msg) {
 				if uid {
+					_imapLog.Debug("stamp mail uid:", msg.Uid)
 					stampSeq.AddNum(msg.Uid)
 				} else {
+					_imapLog.Debug("stamp mail seq:", msg.SeqNum)
 					stampSeq.AddNum(msg.SeqNum)
 				}
 			}
@@ -130,6 +149,8 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 		if err != nil {
 			_imapLog.Warn("move mail to stamp mailbox err:", err)
 		}
+		_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
+		_ = mbox.Expunge()
 	}
 
 	return <-done
@@ -148,7 +169,7 @@ func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]
 }
 
 func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
-	defer _imapLog.Debugf("create message with flags%v", flags)
+	defer _imapLog.Debugf("[%s]create message with flags%v", mbox.name, flags)
 	return mbox.user.cli.Append(mbox.name, flags, date, body)
 }
 
@@ -158,7 +179,7 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 	}
 
 	flagsInterface := imap.FormatStringList(flags)
-	defer _imapLog.Debugf("update message[%s] flags%v uid=%t op=%s", seqSet.String(), flags, uid, op)
+	defer _imapLog.Debugf("[%s]update message[%s] flags%v uid=%t op=%s", mbox.name, seqSet.String(), flags, uid, op)
 
 	if uid {
 		return mbox.user.cli.UidStore(seqSet, imap.StoreItem(op), flagsInterface, nil)
@@ -171,7 +192,7 @@ func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string
 	if err := mbox.ensureSelected(); err != nil {
 		return err
 	}
-	defer _imapLog.Debugf("copy message[%s] to [%s]", seqSet.String(), destName)
+	defer _imapLog.Debugf("[%s]copy message[%s] to [%s]", mbox.name, seqSet.String(), destName)
 	if uid {
 		return mbox.user.cli.UidCopy(seqSet, destName)
 	} else {
@@ -189,7 +210,7 @@ func (mbox *Mailbox) Expunge() error {
 }
 
 func (mbox *Mailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, dest string) error {
-	defer _imapLog.Debugf("move message from mailbox[%s] to [%s]", mbox.name, dest)
+	defer _imapLog.Debugf("move message from mailbox[%s] to [%s] seq:%v", mbox.name, dest, seqSet)
 
 	if uid {
 		return mbox.user.cli.UidMove(seqSet, dest)
