@@ -1,7 +1,11 @@
 package imap
 
 import (
-	"fmt"
+	"bufio"
+	"bytes"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	"io"
+	"net/textproto"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -56,6 +60,41 @@ func (mbox *Mailbox) Check() error {
 	return mbox.user.cli.Check()
 }
 
+func (mbox *Mailbox) isStampMail(msg *imap.Message) bool {
+	_imapLog.Debug("msg body size:", len(msg.Body))
+	var buf bytes.Buffer
+	for name, literal := range msg.Body {
+		if name.BodyPartName.Specifier != imap.HeaderSpecifier {
+			continue
+		}
+		_imapLog.Debug("msg header found")
+		_, err := io.Copy(&buf, literal)
+		if err != nil {
+			_imapLog.Warn("copy header failed:", err)
+			return false
+		}
+		break
+	}
+
+	if buf.Len() == 0 {
+		_imapLog.Info("no header data found")
+		return false
+	}
+	txtR := textproto.NewReader(bufio.NewReader(&buf))
+	headers, err := txtR.ReadMIMEHeader()
+	if err != nil {
+		_imapLog.Warn("msg header parse err:", err)
+		return false
+	}
+	stamp := headers.Get(common.BlockStampKey)
+	if len(stamp) < 4 {
+		_imapLog.Info("no stamp found")
+		return false
+	}
+	_imapLog.Debugf("stamp{%s} found uid[%d] seq[%d]:", stamp, msg.Uid, msg.SeqNum)
+	return true
+}
+
 func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
 	defer close(ch)
 
@@ -72,16 +111,25 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			done <- mbox.user.cli.Fetch(seqSet, items, messages)
 		}
 	}()
-	//var needTrans = mbox.name == common.INBOXName
+	stampSeq := new(imap.SeqSet)
 	for msg := range messages {
-		if msg.BodyStructure != nil || len(msg.Body) > 0 {
-			fmt.Println()
-			fmt.Println()
-			fmt.Println(msg.Body)
-			fmt.Println()
-			fmt.Println()
+
+		if len(msg.Body) > 0 && mbox.name == common.INBOXName {
+			if mbox.isStampMail(msg) {
+				if uid {
+					stampSeq.AddNum(msg.Uid)
+				} else {
+					stampSeq.AddNum(msg.SeqNum)
+				}
+			}
 		}
 		ch <- msg
+	}
+	if !stampSeq.Empty() {
+		err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
+		if err != nil {
+			_imapLog.Warn("move mail to stamp mailbox err:", err)
+		}
 	}
 
 	return <-done

@@ -13,7 +13,7 @@ const (
 	IMAPCliVendor  = "StampClient"
 	StampMailBox   = "区块链邮票"
 	INBOXName      = "INBOX"
-	SMTPHeaderSize = 1 << 10
+	SMTPHeaderSize = 1 << 11
 )
 
 var (

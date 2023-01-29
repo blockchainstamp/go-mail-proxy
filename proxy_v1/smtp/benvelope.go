@@ -25,16 +25,14 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	_smtpLog.Debug("header:", header)
 	msgID := header.Get(common.MsgIDKey)
+	_smtpLog.Debug("msgID:", msgID)
 	addH := fmt.Sprintf(common.BlockStampKey+": TODO::BlockChain Stamp[%s]\r\n", msgID)
 	var newH []byte
 	newH = append(newH, []byte(addH)...)
 	newH = append(newH, buf.Bytes()...)
-	w.Write(newH)
+	_, _ = w.Write(newH)
 	return io.Copy(w, env.Data)
-	//data, err := io.ReadAll(tr)
-	//return int64(len(data)), err
 }
 
 func (env *BEnvelope) WriteToOld(w io.Writer) (n int64, err error) {

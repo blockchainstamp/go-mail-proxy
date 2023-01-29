@@ -47,9 +47,9 @@ func (u *User) ListMailboxes(subscribed bool) (mailboxes []backend.Mailbox, err 
 	var needCreate = true
 	for _, m := range mailboxes {
 		if m.Name() == common.StampMailBox {
+			_imapLog.Debug("stamp mailbox exist:", m.Name())
 			needCreate = false
 		}
-		_imapLog.Debug("mailbox:", m.Name())
 	}
 
 	if needCreate {
