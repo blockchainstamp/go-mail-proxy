@@ -145,10 +145,8 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 		ch <- msg
 	}
 	if !stampSeq.Empty() {
-		err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
-		if err != nil {
-			_imapLog.Warn("move mail to stamp mailbox err:", err)
-		}
+		_ = mbox.CopyMessages(uid, stampSeq, common.StampMailBox)
+		//err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
 		_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
 		_ = mbox.Expunge()
 	}
