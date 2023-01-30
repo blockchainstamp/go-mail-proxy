@@ -8,6 +8,7 @@ import (
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"io"
 	"net/textproto"
+	"strings"
 )
 
 type BEnvelope struct {
@@ -27,6 +28,7 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 		return 0, err
 	}
 	msgID := header.Get(common.MsgIDKey)
+	msgID = strings.TrimLeft(strings.TrimRight(msgID, ">"), "<")
 	_smtpLog.Debug("msgID:", msgID)
 	var newH []byte
 	stamp, err := bstamp.Inst().CreateStamp(env.From, msgID)

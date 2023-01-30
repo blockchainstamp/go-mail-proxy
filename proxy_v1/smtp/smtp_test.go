@@ -3,6 +3,7 @@ package smtp
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
 	"os"
 	"strings"
@@ -115,4 +116,8 @@ func TestBackendSrv_SendMail(t *testing.T) {
 	if err = bs.SendMail(auth, env); err != nil {
 		t.Fatal(err)
 	}
+}
+func TestTrimString(t *testing.T) {
+	out := strings.TrimLeft(strings.TrimRight("<ctencent_B8CEB2213CA5035DDA981169@qq.com>", ">"), "<")
+	fmt.Println(out)
 }

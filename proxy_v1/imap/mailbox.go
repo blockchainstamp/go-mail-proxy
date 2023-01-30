@@ -32,6 +32,7 @@ func (mbox *Mailbox) Name() string {
 }
 
 func (mbox *Mailbox) Info() (*imap.MailboxInfo, error) {
+	_imapLog.Debugf("[%s]Mailbox Info", mbox.name)
 	return mbox.info, nil
 }
 
@@ -40,11 +41,13 @@ func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error
 		mbox := *mbox.user.cli.Mailbox()
 		return &mbox, nil
 	}
-
+	_imapLog.Debugf("[%s]Mailbox Status", mbox.name)
 	return mbox.user.cli.Status(mbox.name, items)
 }
 
 func (mbox *Mailbox) SetSubscribed(subscribed bool) error {
+	_imapLog.Debugf("[%s]Mailbox SetSubscribed", mbox.name)
+
 	if subscribed {
 		return mbox.user.cli.Subscribe(mbox.name)
 	} else {
@@ -56,7 +59,7 @@ func (mbox *Mailbox) Check() error {
 	if err := mbox.ensureSelected(); err != nil {
 		return err
 	}
-
+	_imapLog.Debugf("[%s]Mailbox Check", mbox.name)
 	return mbox.user.cli.Check()
 }
 
@@ -129,26 +132,34 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			done <- mbox.user.cli.Fetch(seqSet, items, messages)
 		}
 	}()
-	stampSeq := new(imap.SeqSet)
 	for msg := range messages {
-		if len(msg.Body) > 0 && mbox.name == common.INBOXName {
-			if mbox.isStampMail(msg) {
-				if uid {
-					_imapLog.Debug("stamp mail uid:", msg.Uid)
-					stampSeq.AddNum(msg.Uid)
-				} else {
-					_imapLog.Debug("stamp mail seq:", msg.SeqNum)
-					stampSeq.AddNum(msg.SeqNum)
-				}
-			}
+		if len(msg.Body) == 0 || mbox.name != common.INBOXName {
+			ch <- msg
+			continue
 		}
-		ch <- msg
-	}
-	if !stampSeq.Empty() {
-		_ = mbox.CopyMessages(uid, stampSeq, common.StampMailBox)
-		//err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
+		if !mbox.isStampMail(msg) {
+			ch <- msg
+			continue
+		}
+		stampSeq := new(imap.SeqSet)
+		if uid {
+			_imapLog.Debug("stamp mail uid:", msg.Uid)
+			stampSeq.AddNum(msg.Uid)
+		} else {
+			_imapLog.Debug("stamp mail seq:", msg.SeqNum)
+			stampSeq.AddNum(msg.SeqNum)
+		}
+		err := mbox.CopyMessages(uid, stampSeq, common.StampMailBox)
+		if err != nil {
+			ch <- msg
+			continue
+		}
 		_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
-		_ = mbox.Expunge()
+		//sBox, err := mbox.user.GetMailbox(common.StampMailBox)
+		//if err != nil {
+		//	continue
+		//}
+		//_ = sBox.UpdateMessagesFlags(uid, stampSeq, imap.DeletedFlag, []string{imap.SeenFlag})
 	}
 
 	return <-done
