@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	bp "github.com/blockchainstamp/go-mail-proxy"
+	"github.com/blockchainstamp/go-mail-proxy/proxy_v1"
+	"github.com/blockchainstamp/go-mail-proxy/utils"
 	"github.com/blockchainstamp/go-mail-proxy/utils/fdlimit"
 	"github.com/spf13/cobra"
 	"math/rand"
@@ -24,11 +26,14 @@ var (
 
 	sigCh      = make(chan os.Signal, 1)
 	configPath string
+	walletAuth string
 )
 
 func init() {
 	proxyCmd.Flags().StringVarP(&configPath, "conf",
 		"c", "proxy.json", "configure file path --conf||-c [CONFIG_FILE_PATH]")
+	proxyCmd.Flags().StringVarP(&walletAuth, "auth",
+		"a", "", "--auth||-a [Password Of Current Stamp Wallet]")
 	rootCmd.AddCommand(proxyCmd)
 }
 
@@ -76,8 +81,12 @@ func proxy(cmd *cobra.Command, args []string) {
 	if err := initSystem(); err != nil {
 		panic(err)
 	}
+	cnf := &proxy_v1.Config{}
+	if err := utils.ReadJsonFile(configPath, cnf); err != nil {
+		panic(err)
+	}
 
-	if err := bp.Inst().InitByConf(configPath); err != nil {
+	if err := bp.Inst().InitByConf(cnf, walletAuth); err != nil {
 		panic(err)
 	}
 	if err := bp.Inst().Start(); err != nil {

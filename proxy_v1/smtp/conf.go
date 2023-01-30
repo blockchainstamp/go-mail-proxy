@@ -5,17 +5,19 @@ import (
 	"crypto/x509"
 	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"os"
 	"strings"
 )
 
 type RemoteConf struct {
-	RemoteSrvCAs   string `json:"ca_files"`
-	RemoteCADomain string `json:"ca_domain"`
-	AllowNotSecure bool   `json:"allow_not_secure"`
-	RemoteSrvName  string `json:"remote_srv_name"`
-	RemoteSrvPort  int    `json:"remote_srv_port"`
-	tlsConfig      *tls.Config
+	RemoteSrvCAs    string `json:"ca_files"`
+	RemoteCADomain  string `json:"ca_domain"`
+	AllowNotSecure  bool   `json:"allow_not_secure"`
+	RemoteSrvName   string `json:"remote_srv_name"`
+	RemoteSrvPort   int    `json:"remote_srv_port"`
+	ActiveStampAddr string `json:"active_stamp_addr"`
+	tlsConfig       *tls.Config
 }
 
 func (rc *RemoteConf) String() string {
@@ -23,6 +25,7 @@ func (rc *RemoteConf) String() string {
 	s += "\nCA Domain:\t" + rc.RemoteCADomain
 	s += fmt.Sprintf("\nAllow not security:\t%t", rc.AllowNotSecure)
 	s += "\nRemote Server:\t" + rc.RemoteSrvName
+	s += "\nStamp Addr:\t" + rc.ActiveStampAddr
 	s += fmt.Sprintf("\nRemote Port:\t%d", rc.RemoteSrvPort)
 	return s
 }
@@ -31,6 +34,7 @@ type Conf struct {
 	SrvAddr         string                 `json:"srv_addr"`
 	SrvDomain       string                 `json:"srv_domain"`
 	RemoteConf      map[string]*RemoteConf `json:"remote_conf"`
+	StampWalletAddr string                 `json:"stamp_wallet_addr"`
 	MaxMessageBytes int                    `json:"max_message_bytes"`
 	ReadTimeOut     int                    `json:"read_time_out"`
 	WriteTimeOut    int                    `json:"write_time_out"`
@@ -41,6 +45,7 @@ func (sc *Conf) String() string {
 	s := "\n=========service[smtp]============="
 	s += "\nServer Addr:\t" + sc.SrvAddr
 	s += "\nServer Domain:\t" + sc.SrvDomain
+	s += "\nWallet Addr:\t" + sc.StampWalletAddr
 	s += fmt.Sprintf("\nMessage Max:\t%d", sc.MaxMessageBytes)
 	s += fmt.Sprintf("\nRead Timout:\t%d", sc.ReadTimeOut)
 	s += fmt.Sprintf("\nWrite Timeout:\t%d", sc.WriteTimeOut)
@@ -54,8 +59,12 @@ func (sc *Conf) String() string {
 	return s
 }
 
-func (sc *Conf) loadRemoteRootCAs() error {
-	for _, conf := range sc.RemoteConf {
+func (sc *Conf) prepareAccounts() error {
+	for user, conf := range sc.RemoteConf {
+		if err := bstamp.Inst().ActiveStamp(user, conf.ActiveStampAddr); err != nil {
+			return err
+		}
+
 		if conf.AllowNotSecure {
 			continue
 		}

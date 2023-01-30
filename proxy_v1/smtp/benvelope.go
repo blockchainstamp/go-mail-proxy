@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"io"
 	"net/textproto"
 )
@@ -27,9 +28,14 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	msgID := header.Get(common.MsgIDKey)
 	_smtpLog.Debug("msgID:", msgID)
-	addH := fmt.Sprintf(common.BlockStampKey+": TODO::BlockChain Stamp[%s]\r\n", msgID)
 	var newH []byte
-	newH = append(newH, []byte(addH)...)
+	stamp, err := bstamp.Inst().CreateStamp(env.From, msgID)
+	if err != nil {
+		_smtpLog.Warn("create stamp failed:", err)
+	} else {
+		addH := fmt.Sprintf(common.BlockStampKey+": %s\r\n", stamp.Serial())
+		newH = append(newH, []byte(addH)...)
+	}
 	newH = append(newH, buf.Bytes()...)
 	_, _ = w.Write(newH)
 	return io.Copy(w, env.Data)

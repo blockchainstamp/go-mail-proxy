@@ -31,11 +31,13 @@ func main() {
 
 var usage = `
 	Usage:
-	bmproxy proxy|version|
+	bmproxy proxy|version|stamp
 	version: 
 		show the version of binary file including the build time and commit simple infos
 	proxy: 
 		start the mail proxy with blockchain wallet
+	stamp:
+		show or create blockchain stamp
 `
 
 func help(_ *cobra.Command, _ []string) {

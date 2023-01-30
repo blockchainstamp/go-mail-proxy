@@ -17,6 +17,7 @@ func TestGenerateProxySample(t *testing.T) {
 		AllowInsecureAuth: true,
 		TlsKeyPath:        "key.pem",
 		TlsCertPath:       "certificate.pem",
+		StampDBPath:       ".",
 	}
 
 	data, err := json.MarshalIndent(c, "", "\t")

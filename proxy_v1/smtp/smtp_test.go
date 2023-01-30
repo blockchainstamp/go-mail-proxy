@@ -12,26 +12,30 @@ import (
 
 var (
 	testConf = &Conf{
-		SrvAddr:   ":1025",
-		SrvDomain: "localhost",
+		SrvAddr:         ":1025",
+		SrvDomain:       "localhost",
+		StampWalletAddr: "BS7UCYp8PSVrjdCn488mz7",
 		RemoteConf: map[string]*RemoteConf{
 			"ribencong@163.com": &RemoteConf{
-				RemoteCADomain: "smtp.163.com",
-				RemoteSrvName:  "smtp.163.com",
-				RemoteSrvPort:  465,
-				RemoteSrvCAs:   "rootCAs/163.com.cer",
+				RemoteCADomain:  "smtp.163.com",
+				RemoteSrvName:   "smtp.163.com",
+				RemoteSrvPort:   465,
+				RemoteSrvCAs:    "rootCAs/163.com.cer",
+				ActiveStampAddr: "",
 			},
 			"ribencong@126.com": &RemoteConf{
-				RemoteCADomain: "smtp.126.com",
-				RemoteSrvName:  "smtp.126.com",
-				RemoteSrvPort:  465,
-				RemoteSrvCAs:   "rootCAs/126.com.cer",
+				RemoteCADomain:  "smtp.126.com",
+				RemoteSrvName:   "smtp.126.com",
+				RemoteSrvPort:   465,
+				RemoteSrvCAs:    "rootCAs/126.com.cer",
+				ActiveStampAddr: "",
 			},
 			"99927800@qq.com": &RemoteConf{
-				RemoteCADomain: "mail.qq.com",
-				RemoteSrvName:  "smtp.qq.com",
-				RemoteSrvPort:  465,
-				RemoteSrvCAs:   "rootCAs/qq.com.cer",
+				RemoteCADomain:  "mail.qq.com",
+				RemoteSrvName:   "smtp.qq.com",
+				RemoteSrvPort:   465,
+				ActiveStampAddr: "",
+				RemoteSrvCAs:    "rootCAs/qq.com.cer",
 			},
 		},
 
@@ -59,7 +63,7 @@ func TestGenerateSMTPSample(t *testing.T) {
 }
 
 func testNewSmtpSrv(t *testing.T) *Service {
-	ss, err := NewSMTPSrv(testConf, nil)
+	ss, err := NewSMTPSrv(testConf, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +99,7 @@ func TestBackendSrv_SendMail(t *testing.T) {
 		},
 	}
 
-	bs, err := NewSMTPSrv(c, nil)
+	bs, err := NewSMTPSrv(c, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}

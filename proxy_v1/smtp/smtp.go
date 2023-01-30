@@ -3,6 +3,8 @@ package smtp
 import (
 	"crypto/tls"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	bstamp "github.com/blockchainstamp/go-stamp-wallet"
+	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -21,8 +23,12 @@ type Service struct {
 	conf    *Conf
 }
 
-func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
-	if err := conf.loadRemoteRootCAs(); err != nil {
+func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config, auth string) (*Service, error) {
+	if err := conf.prepareAccounts(); err != nil {
+		return nil, err
+	}
+
+	if err := bstamp.Inst().PrepareWallet(comm.Address(conf.StampWalletAddr), auth); err != nil {
 		return nil, err
 	}
 

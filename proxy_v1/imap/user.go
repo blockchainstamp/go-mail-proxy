@@ -107,6 +107,6 @@ func (u *User) RenameMailbox(existingName, newName string) error {
 }
 
 func (u *User) Logout() error {
-	_imapLog.Info("user log out", u.username)
+	_imapLog.Info("user log out:", u.username)
 	return u.cli.Logout()
 }

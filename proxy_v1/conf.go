@@ -3,12 +3,11 @@ package proxy_v1
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/utils"
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	_srvConf = &Config{}
+	_srvConf *Config = nil
 )
 
 type Config struct {
@@ -19,6 +18,7 @@ type Config struct {
 	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
 	TlsKeyPath        string `json:"tls-key-path"`
 	TlsCertPath       string `json:"tls-cert-path"`
+	StampDBPath       string `json:"stamp_db_path"`
 }
 
 func (c *Config) String() string {
@@ -30,24 +30,9 @@ func (c *Config) String() string {
 	s += fmt.Sprintf("\nSecure Auth:\t%t", c.AllowInsecureAuth)
 	s += "\nTls Key Path:\t" + c.TlsKeyPath
 	s += "\nTls Cert Path:\t" + c.TlsCertPath
+	s += "\nStamp Data Base:\t" + c.StampDBPath
 	s += "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 	return s
-}
-
-func (c *Config) prepare(confPath string) error {
-	var (
-		err error = nil
-	)
-
-	if err = utils.ReadJsonFile(confPath, _srvConf); err != nil {
-		return err
-	}
-	fmt.Println(_srvConf.String())
-
-	logrus.SetLevel(logrus.Level(_srvConf.LogLevel))
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-
-	return err
 }
 
 func (c *Config) loadServerTlsCnf() (*tls.Config, error) {

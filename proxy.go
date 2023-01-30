@@ -11,7 +11,7 @@ var (
 )
 
 type ProxyService interface {
-	InitByConf(confPath string) error
+	InitByConf(conf any, auth string) error
 	Start() error
 	ShutDown() error
 }

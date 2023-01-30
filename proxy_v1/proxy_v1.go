@@ -7,6 +7,7 @@ import (
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/imap"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/smtp"
 	"github.com/blockchainstamp/go-mail-proxy/utils"
+	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -23,10 +24,15 @@ type ProxyService struct {
 	smtpSrv *smtp.Service
 }
 
-func (p *ProxyService) InitByConf(confPath string) error {
-	if err := _srvConf.prepare(confPath); err != nil {
+func (p *ProxyService) InitByConf(conf any, auth string) error {
+	_srvConf = conf.(*Config)
+	fmt.Println(_srvConf.String())
+	if err := bstamp.InitSDK(_srvConf.StampDBPath); err != nil {
 		return err
 	}
+
+	logrus.SetLevel(logrus.Level(_srvConf.LogLevel))
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	var localTlsCfg *tls.Config
 	if !_srvConf.AllowInsecureAuth {
@@ -53,7 +59,7 @@ func (p *ProxyService) InitByConf(confPath string) error {
 		return err
 	}
 
-	ss, err := smtp.NewSMTPSrv(smtpCfg, localTlsCfg)
+	ss, err := smtp.NewSMTPSrv(smtpCfg, localTlsCfg, auth)
 	if err != nil {
 		return err
 	}
