@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"os"
 	"strings"
 	"testing"
@@ -13,9 +13,8 @@ import (
 
 var (
 	testConf = &Conf{
-		SrvAddr:         ":1025",
-		SrvDomain:       "localhost",
-		StampWalletAddr: "BS7UCYp8PSVrjdCn488mz7",
+		SrvAddr:   ":1025",
+		SrvDomain: "localhost",
 		RemoteConf: map[string]*RemoteConf{
 			"ribencong@163.com": &RemoteConf{
 				RemoteCADomain:  "smtp.163.com",
@@ -64,7 +63,7 @@ func TestGenerateSMTPSample(t *testing.T) {
 }
 
 func testNewSmtpSrv(t *testing.T) *Service {
-	ss, err := NewSMTPSrv(testConf, nil, "")
+	ss, err := NewSMTPSrv(testConf, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +99,7 @@ func TestBackendSrv_SendMail(t *testing.T) {
 		},
 	}
 
-	bs, err := NewSMTPSrv(c, nil, "")
+	bs, err := NewSMTPSrv(c, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

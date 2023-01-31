@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	common2 "github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,13 +33,13 @@ func (s *cmdService) SetLogLevel(ctx context.Context, req *LogLevel) (result *Co
 }
 
 func (s *cmdService) ReloadConf(ctx context.Context, request *Config) (*CommonResponse, error) {
-	proc := common.GetCmdProc(common.CMDProxy)
+	proc := common2.GetCmdProc(common2.CMDProxy)
 	if proc == nil {
 		return nil, errors.New("no valid processor")
 	}
 
 	return &CommonResponse{
-		Msg: common.DefaultCmdSrvAddr,
+		Msg: common2.DefaultCmdSrvAddr,
 	}, nil
 }
 

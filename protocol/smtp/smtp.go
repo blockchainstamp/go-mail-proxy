@@ -2,9 +2,7 @@ package smtp
 
 import (
 	"crypto/tls"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
-	bstamp "github.com/blockchainstamp/go-stamp-wallet"
-	"github.com/blockchainstamp/go-stamp-wallet/comm"
+	common2 "github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -23,12 +21,8 @@ type Service struct {
 	conf    *Conf
 }
 
-func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config, auth string) (*Service, error) {
+func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
 	if err := conf.prepareAccounts(); err != nil {
-		return nil, err
-	}
-
-	if err := bstamp.Inst().PrepareWallet(comm.Address(conf.StampWalletAddr), auth); err != nil {
 		return nil, err
 	}
 
@@ -76,10 +70,10 @@ func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
 	return &Session{delegate: ss, env: &BEnvelope{}}, nil
 }
 
-func (ss *Service) SendMail(auth common.Auth, env *BEnvelope) error {
+func (ss *Service) SendMail(auth common2.Auth, env *BEnvelope) error {
 	conf := ss.conf.getRemoteConf(auth.UserName)
 	if conf == nil {
-		return common.ConfErr
+		return common2.ConfErr
 	}
 	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
 	dialer.TLSConfig = conf.tlsConfig
@@ -97,10 +91,10 @@ func (ss *Service) SendMail(auth common.Auth, env *BEnvelope) error {
 	return err
 }
 
-func (ss *Service) AUTH(auth *common.Auth) error {
+func (ss *Service) AUTH(auth *common2.Auth) error {
 	conf := ss.conf.getRemoteConf(auth.UserName)
 	if conf == nil {
-		return common.ConfErr
+		return common2.ConfErr
 	}
 	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
 	dialer.TLSConfig = conf.tlsConfig

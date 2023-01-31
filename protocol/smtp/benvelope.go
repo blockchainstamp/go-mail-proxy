@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"io"
 	"net/textproto"

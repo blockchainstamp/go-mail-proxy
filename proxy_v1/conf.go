@@ -18,6 +18,7 @@ type Config struct {
 	AllowInsecureAuth bool   `json:"allow-insecure-auth"`
 	TlsKeyPath        string `json:"tls-key-path"`
 	TlsCertPath       string `json:"tls-cert-path"`
+	StampWalletAddr   string `json:"stamp_wallet_addr"`
 	StampDBPath       string `json:"stamp_db_path"`
 }
 
@@ -30,6 +31,7 @@ func (c *Config) String() string {
 	s += fmt.Sprintf("\nSecure Auth:\t%t", c.AllowInsecureAuth)
 	s += "\nTls Key Path:\t" + c.TlsKeyPath
 	s += "\nTls Cert Path:\t" + c.TlsCertPath
+	s += "\nWallet Addr:\t" + c.StampWalletAddr
 	s += "\nStamp Data Base:\t" + c.StampDBPath
 	s += "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 	return s

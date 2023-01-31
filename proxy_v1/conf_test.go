@@ -2,7 +2,7 @@ package proxy_v1
 
 import (
 	"encoding/json"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
@@ -17,6 +17,7 @@ func TestGenerateProxySample(t *testing.T) {
 		AllowInsecureAuth: true,
 		TlsKeyPath:        "key.pem",
 		TlsCertPath:       "certificate.pem",
+		StampWalletAddr:   "BS7UCYp8PSVrjdCn488mz7",
 		StampDBPath:       ".",
 	}
 

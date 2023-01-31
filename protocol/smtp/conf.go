@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/common"
+	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"os"
 	"strings"
@@ -34,7 +34,6 @@ type Conf struct {
 	SrvAddr         string                 `json:"srv_addr"`
 	SrvDomain       string                 `json:"srv_domain"`
 	RemoteConf      map[string]*RemoteConf `json:"remote_conf"`
-	StampWalletAddr string                 `json:"stamp_wallet_addr"`
 	MaxMessageBytes int                    `json:"max_message_bytes"`
 	ReadTimeOut     int                    `json:"read_time_out"`
 	WriteTimeOut    int                    `json:"write_time_out"`
@@ -45,7 +44,6 @@ func (sc *Conf) String() string {
 	s := "\n=========service[smtp]============="
 	s += "\nServer Addr:\t" + sc.SrvAddr
 	s += "\nServer Domain:\t" + sc.SrvDomain
-	s += "\nWallet Addr:\t" + sc.StampWalletAddr
 	s += fmt.Sprintf("\nMessage Max:\t%d", sc.MaxMessageBytes)
 	s += fmt.Sprintf("\nRead Timout:\t%d", sc.ReadTimeOut)
 	s += fmt.Sprintf("\nWrite Timeout:\t%d", sc.WriteTimeOut)
