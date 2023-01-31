@@ -15,7 +15,7 @@ import (
 
 var (
 	testImapConf = &Conf{
-		SrvAddr:   ":1143",
+		SrvAddr:   ":993",
 		SrvDomain: "localhost",
 		RemoteConf: map[string]*RemoteConf{
 			"ribencong@163.com": &RemoteConf{

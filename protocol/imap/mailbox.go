@@ -132,16 +132,16 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			done <- mbox.user.cli.Fetch(seqSet, items, messages)
 		}
 	}()
+
+	stampSeq := new(imap.SeqSet)
 	for msg := range messages {
+		ch <- msg
 		if len(msg.Body) == 0 || mbox.name != common.INBOXName {
-			ch <- msg
 			continue
 		}
 		if !mbox.isStampMail(msg) {
-			ch <- msg
 			continue
 		}
-		stampSeq := new(imap.SeqSet)
 		if uid {
 			_imapLog.Debug("prepare move stamp mail uid:", msg.Uid)
 			stampSeq.AddNum(msg.Uid)
@@ -149,21 +149,36 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			_imapLog.Debug("prepare move stamp mail seq:", msg.SeqNum)
 			stampSeq.AddNum(msg.SeqNum)
 		}
-		err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
-		if err != nil {
-			_imapLog.Warn("copy message from stamp mailbox err:", err)
-			ch <- msg
-			continue
-		}
-		_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
-		//sBox, err := mbox.user.GetMailbox(common.StampMailBox)
-		//if err != nil {
-		//	continue
-		//}
-		//_ = sBox.UpdateMessagesFlags(uid, stampSeq, imap.DeletedFlag, []string{imap.SeenFlag})
 	}
 
-	return <-done
+	err := <-done
+	if err != nil {
+		return err
+	}
+	if stampSeq.Empty() {
+		return nil
+	}
+
+	errCh := make(chan error, 1)
+	go func() {
+		err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
+		if err != nil {
+			_imapLog.Warn("move message from stamp mailbox err:", err)
+			errCh <- err
+		}
+		_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
+		errCh <- nil
+	}()
+
+	for {
+		select {
+		case <-errCh:
+			return nil
+		case <-time.After(time.Second * 30):
+			_imapLog.Warn("move message time out:")
+			return nil
+		}
+	}
 }
 
 func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {

@@ -13,7 +13,7 @@ import (
 
 var (
 	testConf = &Conf{
-		SrvAddr:         ":1025",
+		SrvAddr:         ":465",
 		SrvDomain:       "localhost",
 		StampWalletAddr: "BS7UCYp8PSVrjdCn488mz7",
 		RemoteConf: map[string]*RemoteConf{
