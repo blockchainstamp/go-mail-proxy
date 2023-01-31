@@ -165,9 +165,10 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 		if err != nil {
 			_imapLog.Warn("move message from stamp mailbox err:", err)
 			errCh <- err
+		} else {
+			_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
+			errCh <- nil
 		}
-		_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
-		errCh <- nil
 	}()
 
 	for {

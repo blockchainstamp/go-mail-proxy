@@ -38,13 +38,14 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	s.env = &BEnvelope{
 		From: from,
 	}
-	stampAddr := s.conf.RemoteConf[from].ActiveStampAddr
+
+	stampAddr := bstamp.Inst().GetActiveStamp(from)
 	walletAddr := s.conf.StampWalletAddr
 
 	if len(stampAddr) > 0 && len(walletAddr) > 0 {
 		s.env.Stamp = &comm.RawStamp{
 			WAddr:        comm.WalletAddr(walletAddr),
-			SAdr:         comm.StampAddr(stampAddr),
+			SAdr:         stampAddr,
 			FromMailAddr: from,
 			No:           1,
 		}
@@ -52,7 +53,7 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	}
 
 	_smtpLog.Info("create new envelope from: ", from)
-	bstamp.Inst().UpdateStampBalanceAsync(comm.StampAddr(stampAddr))
+	bstamp.Inst().UpdateStampBalanceAsync(stampAddr)
 	return nil
 }
 

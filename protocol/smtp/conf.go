@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
+	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"os"
 	"strings"
 )
@@ -61,7 +62,7 @@ func (sc *Conf) String() string {
 
 func (sc *Conf) prepareAccounts() error {
 	for user, conf := range sc.RemoteConf {
-		if err := bstamp.Inst().ActiveStamp(user, conf.ActiveStampAddr); err != nil {
+		if err := bstamp.Inst().ActiveStamp(user, comm.StampAddr(conf.ActiveStampAddr)); err != nil {
 			return err
 		}
 

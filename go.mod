@@ -17,6 +17,7 @@ require (
 require (
 	github.com/btcsuite/btcutil v1.0.2 // indirect
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead // indirect
+	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
