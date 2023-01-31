@@ -143,14 +143,15 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 		}
 		stampSeq := new(imap.SeqSet)
 		if uid {
-			_imapLog.Debug("stamp mail uid:", msg.Uid)
+			_imapLog.Debug("prepare move stamp mail uid:", msg.Uid)
 			stampSeq.AddNum(msg.Uid)
 		} else {
-			_imapLog.Debug("stamp mail seq:", msg.SeqNum)
+			_imapLog.Debug("prepare move stamp mail seq:", msg.SeqNum)
 			stampSeq.AddNum(msg.SeqNum)
 		}
-		err := mbox.CopyMessages(uid, stampSeq, common.StampMailBox)
+		err := mbox.MoveMessages(uid, stampSeq, common.StampMailBox)
 		if err != nil {
+			_imapLog.Warn("copy message from stamp mailbox err:", err)
 			ch <- msg
 			continue
 		}

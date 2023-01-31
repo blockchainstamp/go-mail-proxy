@@ -99,7 +99,7 @@ func stamp(cmd *cobra.Command, args []string) {
 				fmt.Println(bstamp.Inst().ListAllWalletAddr())
 				return
 			}
-			w, err := bstamp.Inst().GetWallet(comm.Address(walletAddr))
+			w, err := bstamp.Inst().GetWallet(comm.WalletAddr(walletAddr))
 			if err != nil {
 				fmt.Println(err)
 				return

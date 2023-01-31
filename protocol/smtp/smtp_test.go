@@ -13,15 +13,16 @@ import (
 
 var (
 	testConf = &Conf{
-		SrvAddr:   ":1025",
-		SrvDomain: "localhost",
+		SrvAddr:         ":1025",
+		SrvDomain:       "localhost",
+		StampWalletAddr: "BS7UCYp8PSVrjdCn488mz7",
 		RemoteConf: map[string]*RemoteConf{
 			"ribencong@163.com": &RemoteConf{
 				RemoteCADomain:  "smtp.163.com",
 				RemoteSrvName:   "smtp.163.com",
 				RemoteSrvPort:   465,
 				RemoteSrvCAs:    "rootCAs/163.com.cer",
-				ActiveStampAddr: "",
+				ActiveStampAddr: "0x22943c6888C6C0a6272072AFD72B75c9B8013c92",
 			},
 			"ribencong@126.com": &RemoteConf{
 				RemoteCADomain:  "smtp.126.com",

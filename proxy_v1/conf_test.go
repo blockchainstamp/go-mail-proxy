@@ -17,7 +17,6 @@ func TestGenerateProxySample(t *testing.T) {
 		AllowInsecureAuth: true,
 		TlsKeyPath:        "key.pem",
 		TlsCertPath:       "certificate.pem",
-		StampWalletAddr:   "BS7UCYp8PSVrjdCn488mz7",
 		StampDBPath:       ".",
 	}
 

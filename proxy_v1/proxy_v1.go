@@ -31,9 +31,6 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 	if err := bstamp.InitSDK(_srvConf.StampDBPath); err != nil {
 		return err
 	}
-	if err := bstamp.Inst().PrepareWallet(comm.Address(_srvConf.StampWalletAddr), auth); err != nil {
-		return err
-	}
 
 	logrus.SetLevel(logrus.Level(_srvConf.LogLevel))
 	logrus.SetFormatter(&logrus.JSONFormatter{})
@@ -61,6 +58,12 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 	is, err := imap2.NewIMAPSrv(imapCfg, localTlsCfg)
 	if err != nil {
 		return err
+	}
+
+	if len(auth) > 0 && len(smtpCfg.StampWalletAddr) > 0 {
+		if err := bstamp.Inst().PrepareWallet(comm.WalletAddr(smtpCfg.StampWalletAddr), auth); err != nil {
+			return err
+		}
 	}
 
 	ss, err := smtp2.NewSMTPSrv(smtpCfg, localTlsCfg)

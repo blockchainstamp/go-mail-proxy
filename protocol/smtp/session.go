@@ -2,6 +2,8 @@ package smtp
 
 import (
 	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	bstamp "github.com/blockchainstamp/go-stamp-wallet"
+	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"github.com/emersion/go-smtp"
 	"io"
 )
@@ -15,6 +17,7 @@ type Session struct {
 	auth     *common.Auth
 	delegate Delegate
 	env      *BEnvelope
+	conf     *Conf
 }
 
 func (s *Session) AuthPlain(username, password string) error {
@@ -22,18 +25,39 @@ func (s *Session) AuthPlain(username, password string) error {
 		UserName: username,
 		PassWord: password,
 	}
-	_smtpLog.Info("session auth for:", username)
-	return s.delegate.AUTH(s.auth)
+	err := s.delegate.AUTH(s.auth)
+	if err != nil {
+		_smtpLog.Infof("user[%s] auth failed:%s", username, err)
+		return err
+	}
+	_smtpLog.Infof("user[%s] auth success:", username)
+	return nil
 }
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
-	_smtpLog.Info("Mail from: ", from)
-	s.env.From = from
+	s.env = &BEnvelope{
+		From: from,
+	}
+	stampAddr := s.conf.RemoteConf[from].ActiveStampAddr
+	walletAddr := s.conf.StampWalletAddr
+
+	if len(stampAddr) > 0 && len(walletAddr) > 0 {
+		s.env.Stamp = &comm.RawStamp{
+			WAddr:        comm.WalletAddr(walletAddr),
+			SAdr:         comm.StampAddr(stampAddr),
+			FromMailAddr: from,
+			No:           1,
+		}
+		_smtpLog.Info("this mail account has stamp")
+	}
+
+	_smtpLog.Info("create new envelope from: ", from)
+	bstamp.Inst().UpdateStampBalanceAsync(comm.StampAddr(stampAddr))
 	return nil
 }
 
 func (s *Session) Rcpt(to string) error {
-	_smtpLog.Info("Rcpt to:", to)
+	_smtpLog.Info("Rcpt to: ", to)
 	s.env.Tos = append(s.env.Tos, to)
 	return nil
 }

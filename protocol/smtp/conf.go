@@ -33,6 +33,7 @@ func (rc *RemoteConf) String() string {
 type Conf struct {
 	SrvAddr         string                 `json:"srv_addr"`
 	SrvDomain       string                 `json:"srv_domain"`
+	StampWalletAddr string                 `json:"stamp_wallet_addr"`
 	RemoteConf      map[string]*RemoteConf `json:"remote_conf"`
 	MaxMessageBytes int                    `json:"max_message_bytes"`
 	ReadTimeOut     int                    `json:"read_time_out"`
@@ -44,6 +45,7 @@ func (sc *Conf) String() string {
 	s := "\n=========service[smtp]============="
 	s += "\nServer Addr:\t" + sc.SrvAddr
 	s += "\nServer Domain:\t" + sc.SrvDomain
+	s += "\nWallet Addr:\t" + sc.StampWalletAddr
 	s += fmt.Sprintf("\nMessage Max:\t%d", sc.MaxMessageBytes)
 	s += fmt.Sprintf("\nRead Timout:\t%d", sc.ReadTimeOut)
 	s += fmt.Sprintf("\nWrite Timeout:\t%d", sc.WriteTimeOut)
