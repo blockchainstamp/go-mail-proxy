@@ -6,6 +6,7 @@ import (
 	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"github.com/emersion/go-smtp"
 	"io"
+	"time"
 )
 
 type Delegate interface {
@@ -17,7 +18,6 @@ type Session struct {
 	auth     *common.Auth
 	delegate Delegate
 	env      *BEnvelope
-	conf     *Conf
 }
 
 func (s *Session) AuthPlain(username, password string) error {
@@ -30,6 +30,7 @@ func (s *Session) AuthPlain(username, password string) error {
 		_smtpLog.Infof("user[%s] auth failed:%s", username, err)
 		return err
 	}
+	bstamp.Inst().UpdateStampBalanceAsync(username)
 	_smtpLog.Infof("user[%s] auth success:", username)
 	return nil
 }
@@ -39,21 +40,22 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 		From: from,
 	}
 
-	stampAddr := bstamp.Inst().GetActiveStamp(from)
-	walletAddr := s.conf.StampWalletAddr
-
-	if len(stampAddr) > 0 && len(walletAddr) > 0 {
+	stamp := bstamp.Inst().GetStamp(from)
+	if stamp != nil {
+		no := 0
+		if stamp.IsConsumable {
+			no = 1
+		}
 		s.env.Stamp = &comm.RawStamp{
-			WAddr:        comm.WalletAddr(walletAddr),
-			SAdr:         stampAddr,
+			SAddr:        comm.StampAddr(stamp.Addr),
 			FromMailAddr: from,
-			No:           1,
+			No:           no,
+			Time:         time.Now().Unix(),
 		}
 		_smtpLog.Info("this mail account has stamp")
 	}
 
 	_smtpLog.Info("create new envelope from: ", from)
-	bstamp.Inst().UpdateStampBalanceAsync(stampAddr)
 	return nil
 }
 

@@ -69,7 +69,6 @@ func (ss *Service) Start() error {
 func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
 	return &Session{
 		delegate: ss,
-		conf:     ss.conf,
 	}, nil
 }
 

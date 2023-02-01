@@ -3,14 +3,13 @@ package proxy_v1
 import (
 	"encoding/json"
 	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
-	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
 )
 
 func TestGenerateProxySample(t *testing.T) {
 	var c = &Config{
-		LogLevel:          uint32(logrus.DebugLevel),
+		LogLevel:          "info",
 		SMTPConfPath:      "smtp.json",
 		IMAPConfPath:      "imap.json",
 		CmdSrvAddr:        common.DefaultCmdSrvAddr,

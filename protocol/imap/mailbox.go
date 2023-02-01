@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"io"
 	"net/textproto"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -89,11 +91,17 @@ func (btr *bTeeReader) hasStamp() bool {
 		return false
 	}
 	stamp := headers.Get(common.BlockStampKey)
-	if len(stamp) < 4 {
+	msgId := headers.Get(common.MsgIDKey)
+	if len(stamp) < 4 || len(msgId) < 4 {
 		_imapLog.Info("no stamp found")
 		return false
 	}
-	_imapLog.Debug("stamp found:", stamp)
+	msgId = strings.TrimLeft(strings.TrimRight(msgId, ">"), "<")
+	if err := bstamp.Inst().VerifyStamp(stamp, msgId); err != nil {
+		_imapLog.Warn("invalid stamp:", stamp, msgId, err)
+		return false
+	}
+	_imapLog.Info("stamp found:", stamp, msgId)
 	return true
 }
 
@@ -166,14 +174,17 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			_imapLog.Warn("move message from stamp mailbox err:", err)
 			errCh <- err
 		} else {
-			_ = mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
-			errCh <- nil
+			_imapLog.Info("move stamp mail success:", stampSeq)
+			errCh <- mbox.UpdateMessagesFlags(uid, stampSeq, imap.AddFlags, []string{imap.DeletedFlag})
 		}
 	}()
 
 	for {
 		select {
-		case <-errCh:
+		case err := <-errCh:
+			if err != nil {
+				_imapLog.Warn(err)
+			}
 			return nil
 		case <-time.After(time.Second * 30):
 			_imapLog.Warn("move message time out:")

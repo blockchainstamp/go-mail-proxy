@@ -47,8 +47,11 @@ func publicKey(priv any) any {
 		return nil
 	}
 }
-
 func main() {
+	Generate()
+}
+
+func Generate() {
 	flag.Parse()
 
 	if len(*host) == 0 {

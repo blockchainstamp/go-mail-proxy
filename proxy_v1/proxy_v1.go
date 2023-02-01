@@ -16,7 +16,7 @@ import (
 var (
 	_proxyLog = logrus.WithFields(logrus.Fields{
 		"mode":    "proxy main process",
-		"package": "proxy",
+		"package": "proxy_v1",
 	})
 )
 
@@ -31,8 +31,11 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 	if err := bstamp.InitSDK(_srvConf.StampDBPath); err != nil {
 		return err
 	}
-
-	logrus.SetLevel(logrus.Level(_srvConf.LogLevel))
+	level, err := logrus.ParseLevel(_srvConf.LogLevel)
+	if err != nil {
+		return err
+	}
+	logrus.SetLevel(level)
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	var localTlsCfg *tls.Config
@@ -61,9 +64,12 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 	}
 
 	if len(auth) > 0 && len(smtpCfg.StampWalletAddr) > 0 {
-		if err := bstamp.Inst().PrepareWallet(comm.WalletAddr(smtpCfg.StampWalletAddr), auth); err != nil {
+		w, err := bstamp.Inst().ActiveWallet(comm.WalletAddr(smtpCfg.StampWalletAddr), auth)
+		if err != nil {
 			return err
 		}
+		fmt.Println("wallet address:", w.Address())
+		fmt.Println("eth address:", w.EthAddr())
 	}
 
 	ss, err := smtp2.NewSMTPSrv(smtpCfg, localTlsCfg)

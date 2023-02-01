@@ -3,7 +3,6 @@ package proxy_v1
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -11,7 +10,7 @@ var (
 )
 
 type Config struct {
-	LogLevel          uint32 `json:"log_level"`
+	LogLevel          string `json:"log_level"`
 	SMTPConfPath      string `json:"smtp"`
 	IMAPConfPath      string `json:"imap"`
 	CmdSrvAddr        string `json:"cmd_srv_addr"`
@@ -23,7 +22,7 @@ type Config struct {
 
 func (c *Config) String() string {
 	s := "\n+++++++++++++++++++++++config+++++++++++++++++++++++++++++"
-	s += "\nLog Level:\t" + logrus.Level(c.LogLevel).String()
+	s += "\nLog Level:\t" + c.LogLevel
 	s += "\nSMTP Config:\t" + c.SMTPConfPath
 	s += "\nIMAP Config:\t" + c.IMAPConfPath
 	s += "\nCMD Srv Addr:\t" + c.CmdSrvAddr

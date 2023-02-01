@@ -1,5 +1,5 @@
 {
-	"log_level": 5,
+	"log_level": "info",
 	"smtp": "smtp.json",
 	"imap": "imap.json",
 	"cmd_srv_addr": "127.0.0.1:1100",

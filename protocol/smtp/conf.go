@@ -62,7 +62,7 @@ func (sc *Conf) String() string {
 
 func (sc *Conf) prepareAccounts() error {
 	for user, conf := range sc.RemoteConf {
-		if err := bstamp.Inst().ActiveStamp(user, comm.StampAddr(conf.ActiveStampAddr)); err != nil {
+		if err := bstamp.Inst().SetStamp(user, comm.StampAddr(conf.ActiveStampAddr)); err != nil {
 			return err
 		}
 

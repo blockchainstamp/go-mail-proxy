@@ -37,8 +37,7 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 
 	if env.Stamp != nil {
 		env.Stamp.SetMsgID(msgID)
-		env.Stamp.SetNo(1)
-		stamp, err := bstamp.Inst().SignStamp(env.Stamp)
+		stamp, err := bstamp.Inst().PostStamp(env.Stamp)
 		if err != nil {
 			_smtpLog.Warn("sign stamp failed: ", err, msgID)
 		} else {
