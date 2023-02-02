@@ -6,6 +6,7 @@ import (
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -19,7 +20,9 @@ var (
 	auth       string
 	dbPath     string
 	walletAddr string
+	walletName string
 	stampAddr  string
+	export     bool
 )
 
 func init() {
@@ -30,8 +33,13 @@ func init() {
 
 	stampCmd.Flags().StringVar(&walletAddr, "wallet",
 		"", "--wallet  [ADDRESS OF Wallet]")
+
+	stampCmd.Flags().StringVarP(&walletName, "name",
+		"n", "", "--name  [NAME OF Wallet]")
+
 	stampCmd.Flags().StringVar(&stampAddr, "stamp",
 		"", "--stamp  [ADDRESS OF Stamp]")
+	stampCmd.Flags().BoolVarP(&export, "export", "e", false, "--export|e export wallet data to file")
 
 	rootCmd.AddCommand(stampCmd)
 }
@@ -40,7 +48,7 @@ var stampUsage = `
 	Usage:
 	bmproxy stamp create-wallet|show
 	create-wallet: 
-		bmproxy stamp  create-wallet --auth|-a [AUTH]  --database||-d [STAMP DB PATH]
+		bmproxy stamp  create-wallet --auth|-a [AUTH] --name|-n [NAME]  --database||-d [STAMP DB PATH]
 	show: 
 		bmproxy stamp show --wallet=[ADDRESS|all] | --stamp=[ADDRESS]
 `
@@ -58,6 +66,7 @@ func initStamp() bool {
 	}
 	return true
 }
+
 func stamp(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Print(stampUsage)
@@ -74,6 +83,11 @@ func stamp(cmd *cobra.Command, args []string) {
 			fmt.Println("too short auth --auth")
 			return
 		}
+		if len(walletName) == 0 {
+			fmt.Println("need --name|-n [NAME] ")
+			return
+		}
+
 		if len(dbPath) == 0 {
 			fmt.Println("need --database||-d [STAMP DB PATH] ")
 			return
@@ -81,7 +95,7 @@ func stamp(cmd *cobra.Command, args []string) {
 		if !initStamp() {
 			return
 		}
-		w, err := bstamp.Inst().CreateWallet(auth)
+		w, err := bstamp.Inst().CreateWallet(auth, walletName)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -105,6 +119,9 @@ func stamp(cmd *cobra.Command, args []string) {
 				return
 			}
 			fmt.Println(w.Verbose())
+			if export {
+				_ = os.WriteFile(w.Name()+".export.json", []byte(w.Verbose()), 0666)
+			}
 			return
 		} else if len(stampAddr) > 0 {
 

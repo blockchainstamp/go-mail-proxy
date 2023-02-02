@@ -35,7 +35,7 @@ var (
 				RemoteCADomain:  "mail.qq.com",
 				RemoteSrvName:   "smtp.qq.com",
 				RemoteSrvPort:   465,
-				ActiveStampAddr: "0x22943c6888C6C0a6272072AFD72B75c9B8013c92",
+				ActiveStampAddr: "0xF9Cbfd74808f812a3B8A2337BFC426B2A10Bd74a",
 				RemoteSrvCAs:    "rootCAs/qq.com.cer",
 			},
 		},
