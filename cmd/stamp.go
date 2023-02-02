@@ -23,6 +23,7 @@ var (
 	walletName string
 	stampAddr  string
 	export     bool
+	walletFile string
 )
 
 func init() {
@@ -41,6 +42,8 @@ func init() {
 		"", "--stamp  [ADDRESS OF Stamp]")
 	stampCmd.Flags().BoolVarP(&export, "export", "e", false, "--export|e export wallet data to file")
 
+	stampCmd.Flags().StringVar(&walletFile, "file",
+		"", "--file  [FILE OF Wallet]")
 	rootCmd.AddCommand(stampCmd)
 }
 
@@ -74,6 +77,33 @@ func stamp(cmd *cobra.Command, args []string) {
 	}
 
 	switch args[0] {
+	case "import-wallet":
+		if len(auth) == 0 {
+			fmt.Println("need --auth|-a [AUTH] ")
+			return
+		}
+		if len(walletFile) == 0 {
+			fmt.Println("need --file [FILE Of Wallet] ")
+			return
+		}
+		if len(dbPath) == 0 {
+			fmt.Println("need --database||-d [STAMP DB PATH] ")
+			return
+		}
+		if !initStamp() {
+			return
+		}
+		bts, err := os.ReadFile(walletFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		w, err := bstamp.Inst().ImportWallet(string(bts), auth)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("import success:", w.Address(), w.EthAddr())
 	case "create-wallet":
 		if len(auth) < 3 {
 			if len(auth) == 0 {
