@@ -13,7 +13,7 @@ func TestGenerateProxySample(t *testing.T) {
 		SMTPConfPath:      "smtp.json",
 		IMAPConfPath:      "imap.json",
 		CmdSrvAddr:        common.DefaultCmdSrvAddr,
-		AllowInsecureAuth: true,
+		AllowInsecureAuth: false,
 		TlsKeyPath:        "key.pem",
 		TlsCertPath:       "certificate.pem",
 		StampDBPath:       ".",

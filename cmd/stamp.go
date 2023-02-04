@@ -131,7 +131,7 @@ func stamp(cmd *cobra.Command, args []string) {
 			return
 		}
 		fmt.Println("---------------------------")
-		fmt.Println("Create Success Addr:", w.Address())
+		fmt.Println("Create Success:", w.Address(), w.EthAddr())
 		fmt.Println("---------------------------")
 
 	case "show":

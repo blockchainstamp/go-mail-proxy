@@ -1,5 +1,5 @@
 {
-	"srv_addr": ":1143",
+	"srv_addr": ":993",
 	"srv_domain": "localhost",
 	"remote_conf": {
 		"99927800@qq.com": {
