@@ -2,6 +2,7 @@ package go_mail_proxy
 
 import (
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1"
+	_ "github.com/btcsuite/btcd/btcutil"
 	"sync"
 )
 
