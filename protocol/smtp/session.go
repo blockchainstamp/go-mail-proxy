@@ -40,7 +40,7 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 		From: from,
 	}
 
-	stamp := bstamp.Inst().GetStamp(from)
+	stamp := bstamp.Inst().GetStampConf(from)
 	if stamp != nil {
 		no := 0
 		if stamp.IsConsumable {
