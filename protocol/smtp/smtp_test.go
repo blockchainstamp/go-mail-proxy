@@ -29,7 +29,7 @@ var (
 				RemoteSrvName:   "smtp.126.com",
 				RemoteSrvPort:   465,
 				RemoteSrvCAs:    "rootCAs/126.com.cer",
-				ActiveStampAddr: "0x6ADdE0e1A0AF405708B45954eC99d5826746ECA2",
+				ActiveStampAddr: "0x63a39520aE7406d3C63063034eda9EA6d43bFCbb",
 			},
 			"99927800@qq.com": &RemoteConf{
 				RemoteCADomain:  "mail.qq.com",
