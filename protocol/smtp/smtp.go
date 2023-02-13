@@ -46,7 +46,7 @@ func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
 	return smtpSrv, nil
 }
 
-func (ss *Service) Start() error {
+func (ss *Service) Start(sig chan struct{}) error {
 
 	go func() {
 		//TODO:: recover the error
@@ -61,6 +61,7 @@ func (ss *Service) Start() error {
 				panic(err)
 			}
 		}
+		sig <- struct{}{}
 	}()
 
 	return nil

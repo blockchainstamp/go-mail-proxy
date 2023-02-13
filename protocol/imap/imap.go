@@ -84,7 +84,7 @@ func NewIMAPSrv(cfg *Conf, lclSrvTls *tls.Config) (*Service, error) {
 	return is, nil
 }
 
-func (is *Service) Start() error {
+func (is *Service) Start(sig chan struct{}) error {
 	go func() {
 		if is.srv.AllowInsecureAuth {
 			_imapLog.Info("imap start success at: ", is.srv.Addr)
@@ -97,6 +97,7 @@ func (is *Service) Start() error {
 				panic(err)
 			}
 		}
+		sig <- struct{}{}
 	}()
 	return nil
 }

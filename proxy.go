@@ -15,6 +15,7 @@ type ProxyService interface {
 	InitByConf(conf any, auth string) error
 	Start() error
 	ShutDown() error
+	StartWithSig(sig chan struct{}) error
 }
 
 func Inst() ProxyService {

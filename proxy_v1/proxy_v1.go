@@ -83,17 +83,31 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 	return nil
 }
 
-func (p *ProxyService) Start() error {
+func (p *ProxyService) StartWithSig(sig chan struct{}) error {
 	var err error = nil
-	if err = p.imapSrv.Start(); err != nil {
+	if err = p.imapSrv.Start(sig); err != nil {
 		return err
 	}
-	if err = p.smtpSrv.Start(); err != nil {
+	if err = p.smtpSrv.Start(sig); err != nil {
 		return err
 	}
 	_proxyLog.Info("proxy process start success")
-
+	go p.monitor(sig)
 	return nil
+}
+
+func (p *ProxyService) Start() error {
+	var sig = make(chan struct{}, 2)
+	return p.StartWithSig(sig)
+}
+
+func (p *ProxyService) monitor(sig chan struct{}) {
+	for {
+		select {
+		case <-sig:
+			_ = p.ShutDown()
+		}
+	}
 }
 
 func (p *ProxyService) ShutDown() error {
