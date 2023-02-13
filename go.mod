@@ -3,7 +3,7 @@ module github.com/blockchainstamp/go-mail-proxy
 go 1.19
 
 require (
-	github.com/blockchainstamp/go-stamp-wallet v1.0.1
+	github.com/blockchainstamp/go-stamp-wallet v1.0.2
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
@@ -47,4 +47,4 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 )
 
-replace github.com/blockchainstamp/go-stamp-wallet => /Users/hyperorchid/bmail/go-stamp-wallet
+//replace github.com/blockchainstamp/go-stamp-wallet => /Users/hyperorchid/bmail/go-stamp-wallet
