@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"context"
 	"crypto/tls"
 	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"github.com/emersion/go-imap"
@@ -68,6 +69,7 @@ func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.U
 func NewIMAPSrv(cfg *Conf, lclSrvTls *tls.Config) (*Service, error) {
 
 	if err := cfg.loadRemoteRootCAs(); err != nil {
+		_imapLog.Error("load root ca err:", err)
 		return nil, err
 	}
 	is := &Service{
@@ -100,4 +102,29 @@ func (is *Service) Start(sig chan struct{}) error {
 		sig <- struct{}{}
 	}()
 	return nil
+}
+
+func (is *Service) StartWithCtx(cancel context.CancelFunc) error {
+	go func() {
+		if is.srv.AllowInsecureAuth {
+			_imapLog.Info("imap start success at: ", is.srv.Addr)
+			if err := is.srv.ListenAndServe(); err != nil {
+				_imapLog.Warn(err)
+			}
+		} else {
+			_imapLog.Info("imap with tls start success at:", is.srv.Addr)
+			if err := is.srv.ListenAndServeTLS(); err != nil {
+				_imapLog.Warn(err)
+			}
+		}
+		cancel()
+	}()
+	return nil
+}
+
+func (is *Service) Stop() {
+	if is.srv != nil {
+		_ = is.srv.Close()
+	}
+	is.srv = nil
 }

@@ -63,6 +63,7 @@ func (sc *Conf) String() string {
 func (sc *Conf) prepareAccounts() error {
 	for user, conf := range sc.RemoteConf {
 		if err := bstamp.Inst().ConfigStamp(user, comm.StampAddr(conf.ActiveStampAddr)); err != nil {
+			_smtpLog.Error("config stamp failed:", user, conf.ActiveStampAddr, err)
 			return err
 		}
 
@@ -71,12 +72,14 @@ func (sc *Conf) prepareAccounts() error {
 		}
 		fileNames := strings.Split(conf.RemoteSrvCAs, common.CAFileSep)
 		if len(fileNames) == 0 {
+			_smtpLog.Error("no valid ca file:", conf.RemoteSrvCAs)
 			return common.TLSErr
 		}
 		rootCAs := x509.NewCertPool()
 		for _, caPath := range fileNames {
 			data, err := os.ReadFile(caPath)
 			if err != nil {
+				_smtpLog.Errorf("read ca file[%s] failed:%s", caPath, err)
 				return err
 			}
 			rootCAs.AppendCertsFromPEM(data)

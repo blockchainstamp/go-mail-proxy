@@ -1,6 +1,7 @@
 package smtp
 
 import (
+	"context"
 	"crypto/tls"
 	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"github.com/emersion/go-smtp"
@@ -23,6 +24,7 @@ type Service struct {
 
 func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
 	if err := conf.prepareAccounts(); err != nil {
+		_smtpLog.Error("prepare account failed")
 		return nil, err
 	}
 
@@ -45,7 +47,26 @@ func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
 	_smtpLog.Info("smtp receiving service init success at:", s.Addr)
 	return smtpSrv, nil
 }
+func (ss *Service) StartWithCtx(cancel context.CancelFunc) error {
 
+	go func() {
+		//TODO:: recover the error
+		if ss.smtpSrv.AllowInsecureAuth {
+			_smtpLog.Info("smtp service running at:", ss.smtpSrv.Addr)
+			if err := ss.smtpSrv.ListenAndServe(); err != nil {
+				_smtpLog.Warn(err)
+			}
+		} else {
+			_smtpLog.Info("smtp service with tls running at:", ss.smtpSrv.Addr)
+			if err := ss.smtpSrv.ListenAndServeTLS(); err != nil {
+				_smtpLog.Warn(err)
+			}
+		}
+		cancel()
+	}()
+
+	return nil
+}
 func (ss *Service) Start(sig chan struct{}) error {
 
 	go func() {
@@ -65,6 +86,13 @@ func (ss *Service) Start(sig chan struct{}) error {
 	}()
 
 	return nil
+}
+
+func (ss *Service) Stop() {
+	if ss.smtpSrv != nil {
+		_ = ss.smtpSrv.Close()
+	}
+	ss.smtpSrv = nil
 }
 
 func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {

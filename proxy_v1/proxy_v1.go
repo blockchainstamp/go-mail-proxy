@@ -76,7 +76,7 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 	if err != nil {
 		return err
 	}
-	go utils.StartCmdService(_srvConf.CmdSrvAddr)
+	go utils.StartCmdService(_srvConf.CmdSrvAddr, nil)
 	p.smtpSrv = ss
 	p.imapSrv = is
 	_proxyLog.Info("proxy process init success")

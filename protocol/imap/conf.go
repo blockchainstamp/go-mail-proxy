@@ -52,16 +52,20 @@ func (c *Conf) loadRemoteRootCAs() error {
 		conf.remoteSrvAddr = fmt.Sprintf("%s:%d", conf.RemoteSrvName, conf.RemoteSrvPort)
 
 		if conf.AllowNotSecure {
+			_imapLog.Info("no need ca file:", conf.RemoteSrvCAs)
 			continue
 		}
 		fileNames := strings.Split(conf.RemoteSrvCAs, common.CAFileSep)
 		if len(fileNames) == 0 {
+			_imapLog.Errorf("no valid ca file:[%s]", conf.RemoteSrvCAs)
 			return common.TLSErr
 		}
 		rootCAs := x509.NewCertPool()
 		for _, caPath := range fileNames {
+			_imapLog.Debug("ca file path:", caPath)
 			data, err := os.ReadFile(caPath)
 			if err != nil {
+				_imapLog.Errorf("read ca file[%s] failed:%s", caPath, err)
 				return err
 			}
 			rootCAs.AppendCertsFromPEM(data)

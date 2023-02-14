@@ -43,7 +43,7 @@ func (s *cmdService) ReloadConf(ctx context.Context, request *Config) (*CommonRe
 	}, nil
 }
 
-func StartCmdService(addr string) {
+func StartCmdService(addr string, ctx context.Context) {
 	l, err := net.Listen("tcp4", addr)
 	if err != nil {
 		panic(err)
@@ -55,6 +55,18 @@ func StartCmdService(addr string) {
 
 	reflection.Register(cmdServer)
 	fmt.Println("command service start=================>", l.Addr())
+	if ctx != nil {
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					cmdServer.Stop()
+					fmt.Println("command service stop=================>")
+					return
+				}
+			}
+		}()
+	}
 
 	if err := cmdServer.Serve(l); err != nil {
 		panic(err)
