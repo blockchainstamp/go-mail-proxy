@@ -3,6 +3,7 @@ module github.com/blockchainstamp/go-mail-proxy
 go 1.19
 
 require (
+	github.com/blockchainstamp/fdlimit v1.0.0
 	github.com/blockchainstamp/go-stamp-wallet v1.0.2
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/emersion/go-imap v1.2.1

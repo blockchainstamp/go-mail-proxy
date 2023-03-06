@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/blockchainstamp/fdlimit"
 	bp "github.com/blockchainstamp/go-mail-proxy"
 	"github.com/blockchainstamp/go-mail-proxy/proxy_v1"
 	"github.com/blockchainstamp/go-mail-proxy/utils"
-	"github.com/blockchainstamp/go-mail-proxy/utils/fdlimit"
 	"github.com/spf13/cobra"
 	"math/rand"
 	"os"
@@ -44,7 +44,7 @@ func initSystem() error {
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	rand.Seed(int64(time.Now().Nanosecond()))
+	rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
 	limit, err := fdlimit.Maximum()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve file descriptor allowance:%s", err)
