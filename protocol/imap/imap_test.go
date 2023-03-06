@@ -18,19 +18,19 @@ var (
 		SrvAddr:   ":993",
 		SrvDomain: "localhost",
 		RemoteConf: map[string]*RemoteConf{
-			"ribencong@163.com": &RemoteConf{
+			"163.com": &RemoteConf{
 				RemoteCADomain: "imap.163.com",
 				RemoteSrvName:  "imap.163.com",
 				RemoteSrvPort:  993,
 				RemoteSrvCAs:   "rootCAs/163.com.cer",
 			},
-			"ribencong@126.com": &RemoteConf{
+			"126.com": &RemoteConf{
 				RemoteCADomain: "imap.126.com",
 				RemoteSrvName:  "imap.126.com",
 				RemoteSrvPort:  993,
 				RemoteSrvCAs:   "rootCAs/126.com.cer",
 			},
-			"99927800@qq.com": &RemoteConf{
+			"qq.com": &RemoteConf{
 				RemoteCADomain: "mail.qq.com",
 				RemoteSrvName:  "imap.qq.com",
 				RemoteSrvPort:  993,

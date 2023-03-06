@@ -3,29 +3,29 @@
 	"srv_domain": "localhost",
 	"stamp_wallet_addr": "BS7UCYp8PSVrjdCn488mz7",
 	"remote_conf": {
-		"99927800@qq.com": {
-			"ca_files": "rootCAs/qq.com.cer",
-			"ca_domain": "mail.qq.com",
-			"allow_not_secure": false,
-			"remote_srv_name": "smtp.qq.com",
-			"remote_srv_port": 465,
-			"active_stamp_addr": "0xF9Cbfd74808f812a3B8A2337BFC426B2A10Bd74a"
-		},
-		"ribencong@126.com": {
+		"126.com": {
 			"ca_files": "rootCAs/126.com.cer",
 			"ca_domain": "smtp.126.com",
 			"allow_not_secure": false,
 			"remote_srv_name": "smtp.126.com",
 			"remote_srv_port": 465,
-			"active_stamp_addr": "0x6ADdE0e1A0AF405708B45954eC99d5826746ECA2"
+			"active_stamp_addr": "0x63a39520aE7406d3C63063034eda9EA6d43bFCbb"
 		},
-		"ribencong@163.com": {
+		"163.com": {
 			"ca_files": "rootCAs/163.com.cer",
 			"ca_domain": "smtp.163.com",
 			"allow_not_secure": false,
 			"remote_srv_name": "smtp.163.com",
 			"remote_srv_port": 465,
 			"active_stamp_addr": ""
+		},
+		"qq.com": {
+			"ca_files": "rootCAs/qq.com.cer",
+			"ca_domain": "mail.qq.com",
+			"allow_not_secure": false,
+			"remote_srv_name": "smtp.qq.com",
+			"remote_srv_port": 465,
+			"active_stamp_addr": "0xF9Cbfd74808f812a3B8A2337BFC426B2A10Bd74a"
 		}
 	},
 	"max_message_bytes": 536870912,

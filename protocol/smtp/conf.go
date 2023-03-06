@@ -61,9 +61,9 @@ func (sc *Conf) String() string {
 }
 
 func (sc *Conf) prepareAccounts() error {
-	for user, conf := range sc.RemoteConf {
-		if err := bstamp.Inst().ConfigStamp(user, comm.StampAddr(conf.ActiveStampAddr)); err != nil {
-			_smtpLog.Error("config stamp failed:", user, conf.ActiveStampAddr, err)
+	for domain, conf := range sc.RemoteConf {
+		if err := bstamp.Inst().ConfigStamp(domain, comm.StampAddr(conf.ActiveStampAddr)); err != nil {
+			_smtpLog.Error("config stamp failed:", domain, conf.ActiveStampAddr, err)
 			return err
 		}
 
@@ -92,6 +92,13 @@ func (sc *Conf) prepareAccounts() error {
 	}
 	return nil
 }
-func (sc *Conf) getRemoteConf(user string) *RemoteConf {
-	return sc.RemoteConf[user]
+
+func (sc *Conf) getRemoteConf(mailAddr string) *RemoteConf {
+	var addr = strings.Split(mailAddr, common.MailAddrSep)
+	if len(addr) != 2 {
+		_smtpLog.Warn("invalid email address:", mailAddr)
+		return nil
+	}
+	var domain = addr[1]
+	return sc.RemoteConf[domain]
 }

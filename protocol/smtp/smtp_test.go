@@ -17,21 +17,21 @@ var (
 		SrvDomain:       "localhost",
 		StampWalletAddr: "BS7UCYp8PSVrjdCn488mz7",
 		RemoteConf: map[string]*RemoteConf{
-			"ribencong@163.com": &RemoteConf{
+			"163.com": &RemoteConf{
 				RemoteCADomain:  "smtp.163.com",
 				RemoteSrvName:   "smtp.163.com",
 				RemoteSrvPort:   465,
 				RemoteSrvCAs:    "rootCAs/163.com.cer",
 				ActiveStampAddr: "",
 			},
-			"ribencong@126.com": &RemoteConf{
+			"126.com": &RemoteConf{
 				RemoteCADomain:  "smtp.126.com",
 				RemoteSrvName:   "smtp.126.com",
 				RemoteSrvPort:   465,
 				RemoteSrvCAs:    "rootCAs/126.com.cer",
 				ActiveStampAddr: "0x63a39520aE7406d3C63063034eda9EA6d43bFCbb",
 			},
-			"99927800@qq.com": &RemoteConf{
+			"qq.com": &RemoteConf{
 				RemoteCADomain:  "mail.qq.com",
 				RemoteSrvName:   "smtp.qq.com",
 				RemoteSrvPort:   465,

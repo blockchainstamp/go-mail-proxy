@@ -79,6 +79,12 @@ func (c *Conf) loadRemoteRootCAs() error {
 	return nil
 }
 
-func (c *Conf) getRemoteConf(user string) *RemoteConf {
-	return c.RemoteConf[user]
+func (c *Conf) getRemoteConf(mailAddr string) *RemoteConf {
+	var addr = strings.Split(mailAddr, common.MailAddrSep)
+	if len(addr) != 2 {
+		_imapLog.Warn("invalid email address:", mailAddr)
+		return nil
+	}
+	var domain = addr[1]
+	return c.RemoteConf[domain]
 }
