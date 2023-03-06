@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	"os"
 	"strings"
 	"testing"
@@ -73,14 +73,15 @@ func testNewSmtpSrv(t *testing.T) *Service {
 
 func TestNewSMTPSrv_1(t *testing.T) {
 	ss := testNewSmtpSrv(t)
-	_ = ss.Start()
-	time.Sleep(30 * time.Second)
+	sig := make(chan struct{}, 1)
+	_ = ss.Start(sig)
+	<-sig
 }
 
 func TestNewSMTPSrv_2(t *testing.T) {
 	ss := testNewSmtpSrv(t)
-	_ = ss.Start()
-	sig := make(chan bool, 1)
+	sig := make(chan struct{}, 1)
+	_ = ss.Start(sig)
 	<-sig
 }
 

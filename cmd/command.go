@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
 	"github.com/blockchainstamp/go-mail-proxy/utils"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	"github.com/spf13/cobra"
 )
 

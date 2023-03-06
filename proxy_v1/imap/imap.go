@@ -3,7 +3,7 @@ package imap
 import (
 	"context"
 	"crypto/tls"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	"github.com/emersion/go-imap"
 	id "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/backend"

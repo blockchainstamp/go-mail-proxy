@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"os"

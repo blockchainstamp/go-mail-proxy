@@ -3,7 +3,7 @@ package smtp
 import (
 	"context"
 	"crypto/tls"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	common2 "github.com/blockchainstamp/go-mail-proxy/utils/common"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -101,10 +101,10 @@ func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
 	}, nil
 }
 
-func (ss *Service) SendMail(auth common.Auth, env *BEnvelope) error {
+func (ss *Service) SendMail(auth common2.Auth, env *BEnvelope) error {
 	conf := ss.conf.getRemoteConf(auth.UserName)
 	if conf == nil {
-		return common.ConfErr
+		return common2.ConfErr
 	}
 	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
 	dialer.TLSConfig = conf.tlsConfig
@@ -122,10 +122,10 @@ func (ss *Service) SendMail(auth common.Auth, env *BEnvelope) error {
 	return err
 }
 
-func (ss *Service) AUTH(auth *common.Auth) error {
+func (ss *Service) AUTH(auth *common2.Auth) error {
 	conf := ss.conf.getRemoteConf(auth.UserName)
 	if conf == nil {
-		return common.ConfErr
+		return common2.ConfErr
 	}
 	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
 	dialer.TLSConfig = conf.tlsConfig

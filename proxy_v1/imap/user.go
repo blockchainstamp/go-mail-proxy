@@ -2,7 +2,7 @@ package imap
 
 import (
 	"errors"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend"
 )

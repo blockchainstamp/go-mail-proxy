@@ -3,7 +3,7 @@ package imap
 import (
 	"bufio"
 	"bytes"
-	"github.com/blockchainstamp/go-mail-proxy/protocol/common"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"io"
 	"net/textproto"
