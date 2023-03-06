@@ -3,8 +3,8 @@ package proxy_v1
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/imap"
-	"github.com/blockchainstamp/go-mail-proxy/proxy_v1/smtp"
+	imap2 "github.com/blockchainstamp/go-mail-proxy/protocol/imap"
+	smtp2 "github.com/blockchainstamp/go-mail-proxy/protocol/smtp"
 	"github.com/blockchainstamp/go-mail-proxy/utils"
 	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
@@ -21,8 +21,8 @@ var (
 )
 
 type ProxyService struct {
-	imapSrv *imap.Service
-	smtpSrv *smtp.Service
+	imapSrv *imap2.Service
+	smtpSrv *smtp2.Service
 }
 
 func (p *ProxyService) InitByConf(conf any, auth string) error {
@@ -46,19 +46,19 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 		}
 		localTlsCfg = cfg
 	}
-	smtpCfg := &smtp.Conf{}
+	smtpCfg := &smtp2.Conf{}
 	if err := utils.ReadJsonFile(_srvConf.SMTPConfPath, smtpCfg); err != nil {
 		return err
 	}
 	fmt.Println(smtpCfg.String())
 
-	imapCfg := &imap.Conf{}
+	imapCfg := &imap2.Conf{}
 	if err := utils.ReadJsonFile(_srvConf.IMAPConfPath, imapCfg); err != nil {
 		return err
 	}
 	fmt.Println(imapCfg.String())
 
-	is, err := imap.NewIMAPSrv(imapCfg, localTlsCfg)
+	is, err := imap2.NewIMAPSrv(imapCfg, localTlsCfg)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (p *ProxyService) InitByConf(conf any, auth string) error {
 		fmt.Println("eth address:", w.EthAddr())
 	}
 
-	ss, err := smtp.NewSMTPSrv(smtpCfg, localTlsCfg)
+	ss, err := smtp2.NewSMTPSrv(smtpCfg, localTlsCfg)
 	if err != nil {
 		return err
 	}
