@@ -94,6 +94,10 @@ func (sc *Conf) prepareAccounts() error {
 }
 
 func (sc *Conf) getRemoteConf(mailAddr string) *RemoteConf {
+	cfg, ok := sc.RemoteConf[mailAddr]
+	if ok {
+		return cfg
+	}
 	var addr = strings.Split(mailAddr, common.MailAddrSep)
 	if len(addr) != 2 {
 		_smtpLog.Warn("invalid email address:", mailAddr)
