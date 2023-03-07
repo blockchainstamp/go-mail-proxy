@@ -29,6 +29,8 @@ type Service struct {
 }
 
 func (is *Service) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
+	//bts, _ := json.Marshal(tlsInfo)
+	//_imapLog.Debug("tls info ", string(bts))
 	conf := is.conf.getRemoteConf(username)
 	if conf == nil {
 		_imapLog.Warn("no remote tls config for user:", username)
