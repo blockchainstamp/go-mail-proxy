@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/blockchainstamp/fdlimit v1.0.0
-	github.com/blockchainstamp/go-stamp-wallet v1.0.2
+	github.com/blockchainstamp/go-stamp-wallet v1.0.3
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-id v0.0.0-20190926060100-f94a56b9ecde

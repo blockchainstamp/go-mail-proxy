@@ -6,6 +6,7 @@ import (
 	"github.com/blockchainstamp/go-stamp-wallet/comm"
 	"github.com/emersion/go-smtp"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -37,10 +38,15 @@ func (s *Session) AuthPlain(username, password string) error {
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	s.env = &BEnvelope{
-		From: from,
+		From:    from,
+		StampID: from,
 	}
-
 	stamp := bstamp.Inst().GetStampConf(from)
+	if stamp == nil {
+		tmp := strings.Split(from, "@")
+		s.env.StampID = tmp[1]
+		stamp = bstamp.Inst().GetStampConf(s.env.StampID)
+	}
 	if stamp != nil {
 		no := 0
 		if stamp.IsConsumable {

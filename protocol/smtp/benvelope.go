@@ -13,10 +13,11 @@ import (
 )
 
 type BEnvelope struct {
-	From  string
-	Tos   []string
-	Stamp comm.StampData
-	Data  io.Reader
+	From    string
+	StampID string
+	Tos     []string
+	Stamp   comm.StampData
+	Data    io.Reader
 }
 
 func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
@@ -37,7 +38,7 @@ func (env *BEnvelope) WriteTo(w io.Writer) (n int64, err error) {
 
 	if env.Stamp != nil {
 		env.Stamp.SetMsgID(msgID)
-		stamp, err := bstamp.Inst().PostStamp(env.Stamp)
+		stamp, err := bstamp.Inst().PostStamp(env.StampID, env.Stamp)
 		if err != nil {
 			_smtpLog.Warn("sign stamp failed: ", err, msgID)
 		} else {

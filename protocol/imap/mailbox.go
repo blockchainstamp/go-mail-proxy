@@ -90,6 +90,11 @@ func (btr *bTeeReader) hasStamp() bool {
 		_imapLog.Warn("msg header parse err:", err)
 		return false
 	}
+	//fmt.Println("===============headers==================")
+	//for k, v := range headers {
+	//	fmt.Println(k, v)
+	//}
+	//fmt.Println("==========================================")
 	stamp := headers.Get(common.BlockStampKey)
 	msgId := headers.Get(common.MsgIDKey)
 	if len(stamp) < 4 || len(msgId) < 4 {
