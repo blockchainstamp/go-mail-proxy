@@ -13,8 +13,7 @@ import (
 
 var (
 	_smtpLog = logrus.WithFields(logrus.Fields{
-		"mode":    "smtp service",
-		"package": "smtp",
+		"mode": "smtp service",
 	})
 )
 
