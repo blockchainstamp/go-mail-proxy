@@ -8,7 +8,6 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/gomail.v2"
 	"time"
 )
 
@@ -125,7 +124,6 @@ func (ss *Service) NewSession(_ *smtp.Conn) (smtp.Session, error) {
 
 func SendMailTls(addr string, auth common.Auth, env *BEnvelope, tls *tls.Config) error {
 	a := sasl.NewPlainClient("", auth.UserName, auth.PassWord)
-
 	sender, err := smtp.DialTLS(addr, tls)
 	if err != nil {
 		_smtpLog.Warnf("dial to %s failed:%s", addr, err)
@@ -177,7 +175,60 @@ func SendMailTls(addr string, auth common.Auth, env *BEnvelope, tls *tls.Config)
 		_smtpLog.Warn("quit err:", err)
 		return err
 	}
-	_smtpLog.Info("send success: ", env.From)
+	_smtpLog.Info("send mail success: ", env.From)
+	return nil
+}
+func AuthTls(addr string, auth *common.Auth, tls *tls.Config) error {
+	a := sasl.NewPlainClient("", auth.UserName, auth.PassWord)
+	sender, err := smtp.DialTLS(addr, tls)
+	if err != nil {
+		_smtpLog.Warnf("dial to %s failed:%s", addr, err)
+		return err
+	}
+	defer sender.Close()
+	err = sender.Hello("localhost")
+	if err != nil {
+		_smtpLog.Warn("hello err:", err)
+		return err
+	}
+
+	err = sender.Auth(a)
+	if err != nil {
+		_smtpLog.Warn("auth err:", err)
+		return err
+	}
+	_smtpLog.Info("tls auth success: ", auth.UserName)
+	return nil
+}
+
+func AuthNormal(addr string, auth *common.Auth) error {
+	a := sasl.NewPlainClient("", auth.UserName, auth.PassWord)
+	sender, err := smtp.Dial(addr)
+	if err != nil {
+		_smtpLog.Warnf("dial to %s failed:%s", addr, err)
+		return err
+	}
+	defer sender.Close()
+	err = sender.Hello("localhost")
+	if err != nil {
+		_smtpLog.Warn("hello err:", err)
+		return err
+	}
+	if ok, _ := sender.Extension("STARTTLS"); !ok {
+		_smtpLog.Warn("hello err:", err)
+		return fmt.Errorf("smtp: server doesn't support STARTTLS")
+	}
+	err = sender.StartTLS(nil)
+	if err != nil {
+		_smtpLog.Warn("hello err:", err)
+		return err
+	}
+	err = sender.Auth(a)
+	if err != nil {
+		_smtpLog.Warn("auth err:", err)
+		return err
+	}
+	_smtpLog.Info("normal auth success: ", auth.UserName)
 	return nil
 }
 
@@ -195,14 +246,8 @@ func (ss *Service) AUTH(auth *common.Auth) error {
 	if conf == nil {
 		return common.ConfErr
 	}
-	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
-	dialer.TLSConfig = conf.tlsConfig
-
-	sender, err := dialer.Dial()
-	if err != nil {
-		_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
-		return err
-	}
-	_smtpLog.Info("auth success:", auth.UserName)
-	return sender.Close()
+	//addr := fmt.Sprintf("%s:%d", conf.RemoteSrvName, conf.RemoteSrvPort)
+	//return AuthTls(addr, auth, conf.tlsConfig)
+	addr := fmt.Sprintf("%s:%d", conf.RemoteSrvName, 25)
+	return AuthNormal(addr, auth)
 }
