@@ -45,7 +45,7 @@ func NewSMTPSrv(conf *Conf, lclSrvTls *tls.Config) (*Service, error) {
 
 	smtpSrv.smtpSrv = s
 
-	_smtpLog.Info("smtp receiving service init success at:", s.Addr)
+	_smtpLog.Info("smtp service init success at:", s.Addr)
 	return smtpSrv, nil
 }
 func (ss *Service) StartWithCtx(cancel context.CancelFunc) error {
@@ -101,26 +101,6 @@ func (ss *Service) NewSession(_ *smtp.Conn) (smtp.Session, error) {
 		delegate: ss,
 	}, nil
 }
-
-//	func (ss *Service) SendMail(auth common2.Auth, env *BEnvelope) error {
-//		conf := ss.conf.getRemoteConf(auth.UserName)
-//		if conf == nil {
-//			return common2.ConfErr
-//		}
-//		dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
-//		dialer.TLSConfig = conf.tlsConfig
-//		sender, err := dialer.Dial()
-//		if err != nil {
-//			_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
-//			return err
-//		}
-//		defer sender.Close()
-//		err = sender.Send(env.From, env.Tos, env)
-//		if err != nil {
-//			_smtpLog.Warnf("SendMail failed :%s", err)
-//		}
-//		return err
-//	}
 
 func SendMailTls(addr string, auth common.Auth, env *BEnvelope, tls *tls.Config) error {
 	a := sasl.NewPlainClient("", auth.UserName, auth.PassWord)
