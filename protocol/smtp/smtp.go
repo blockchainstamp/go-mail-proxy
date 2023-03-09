@@ -3,7 +3,9 @@ package smtp
 import (
 	"context"
 	"crypto/tls"
-	common2 "github.com/blockchainstamp/go-mail-proxy/utils/common"
+	"fmt"
+	"github.com/blockchainstamp/go-mail-proxy/utils/common"
+	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -95,37 +97,103 @@ func (ss *Service) Stop() {
 	ss.smtpSrv = nil
 }
 
-func (ss *Service) NewSession(c *smtp.Conn) (smtp.Session, error) {
+func (ss *Service) NewSession(_ *smtp.Conn) (smtp.Session, error) {
 	return &Session{
 		delegate: ss,
 	}, nil
 }
 
-func (ss *Service) SendMail(auth common2.Auth, env *BEnvelope) error {
-	conf := ss.conf.getRemoteConf(auth.UserName)
-	if conf == nil {
-		return common2.ConfErr
-	}
-	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
-	dialer.TLSConfig = conf.tlsConfig
+//	func (ss *Service) SendMail(auth common2.Auth, env *BEnvelope) error {
+//		conf := ss.conf.getRemoteConf(auth.UserName)
+//		if conf == nil {
+//			return common2.ConfErr
+//		}
+//		dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
+//		dialer.TLSConfig = conf.tlsConfig
+//		sender, err := dialer.Dial()
+//		if err != nil {
+//			_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
+//			return err
+//		}
+//		defer sender.Close()
+//		err = sender.Send(env.From, env.Tos, env)
+//		if err != nil {
+//			_smtpLog.Warnf("SendMail failed :%s", err)
+//		}
+//		return err
+//	}
 
-	sender, err := dialer.Dial()
+func SendMailTls(addr string, auth common.Auth, env *BEnvelope, tls *tls.Config) error {
+	a := sasl.NewPlainClient("", auth.UserName, auth.PassWord)
+
+	sender, err := smtp.DialTLS(addr, tls)
 	if err != nil {
-		_smtpLog.Warnf("dial to %s failed:%s", conf.RemoteSrvName, err)
+		_smtpLog.Warnf("dial to %s failed:%s", addr, err)
 		return err
 	}
 	defer sender.Close()
-	err = sender.Send(env.From, env.Tos, env)
+	err = sender.Hello("localhost")
 	if err != nil {
-		_smtpLog.Warnf("SendMail failed :%s", err)
+		_smtpLog.Warn("hello err:", err)
+		return err
 	}
-	return err
+
+	err = sender.Auth(a)
+	if err != nil {
+		_smtpLog.Warn("auth err:", err)
+		return err
+	}
+
+	err = sender.Mail(env.From, nil)
+	if err != nil {
+		_smtpLog.Warn("mail err:", err)
+		return err
+	}
+	for _, to := range env.Tos {
+		err = sender.Rcpt(to)
+		if err != nil {
+			_smtpLog.Warn("rcpt err:", to, err)
+			return err
+		}
+	}
+	wc, err := sender.Data()
+	if err != nil {
+		_smtpLog.Warn("data err:", err)
+		return err
+	}
+	//_, err = io.Copy(wc, env.Data)
+	_, err = env.WriteTo(wc)
+	if err != nil {
+		_smtpLog.Warn("write to err:", err)
+		return err
+	}
+	err = wc.Close()
+	if err != nil {
+		_smtpLog.Warn("close err:", err)
+		return err
+	}
+	err = sender.Quit()
+	if err != nil {
+		_smtpLog.Warn("quit err:", err)
+		return err
+	}
+	_smtpLog.Info("send success: ", env.From)
+	return nil
 }
 
-func (ss *Service) AUTH(auth *common2.Auth) error {
+func (ss *Service) SendMail(auth common.Auth, env *BEnvelope) error {
 	conf := ss.conf.getRemoteConf(auth.UserName)
 	if conf == nil {
-		return common2.ConfErr
+		return common.ConfErr
+	}
+	addr := fmt.Sprintf("%s:%d", conf.RemoteSrvName, conf.RemoteSrvPort)
+	return SendMailTls(addr, auth, env, conf.tlsConfig)
+}
+
+func (ss *Service) AUTH(auth *common.Auth) error {
+	conf := ss.conf.getRemoteConf(auth.UserName)
+	if conf == nil {
+		return common.ConfErr
 	}
 	dialer := gomail.NewDialer(conf.RemoteSrvName, conf.RemoteSrvPort, auth.UserName, auth.PassWord)
 	dialer.TLSConfig = conf.tlsConfig

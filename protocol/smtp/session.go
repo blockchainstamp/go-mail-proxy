@@ -1,6 +1,7 @@
 package smtp
 
 import (
+	"fmt"
 	"github.com/blockchainstamp/go-mail-proxy/utils/common"
 	bstamp "github.com/blockchainstamp/go-stamp-wallet"
 	"github.com/blockchainstamp/go-stamp-wallet/comm"
@@ -44,6 +45,9 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	stamp := bstamp.Inst().GetStampConf(from)
 	if stamp == nil {
 		tmp := strings.Split(from, "@")
+		if len(tmp) != 2 {
+			return fmt.Errorf("invalid email address")
+		}
 		s.env.StampID = tmp[1]
 		stamp = bstamp.Inst().GetStampConf(s.env.StampID)
 	}
